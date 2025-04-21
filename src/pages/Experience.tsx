@@ -1,18 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Experience as ExperienceType } from '../types';
+import { useAdmin } from '../context/AdminContext';
 
 export function Experience() {
   const [experiences, setExperiences] = useState<ExperienceType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchExperiences = async () => {
       try {
         const response = await fetch('http://localhost:5000/api/experiences');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch experiences');
+        }
+        
         const data = await response.json();
         setExperiences(data);
+        setError(null);
       } catch (error) {
         console.error('Error fetching experiences:', error);
+        setError('Failed to load experiences. Please try again later.');
       } finally {
         setIsLoading(false);
       }
@@ -32,6 +41,14 @@ export function Experience() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-red-500">{error}</p>
       </div>
     );
   }

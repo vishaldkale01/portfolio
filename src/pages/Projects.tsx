@@ -1,21 +1,28 @@
 import { useState, useEffect } from 'react';
 import { Project } from '../types';
+import { useAdmin } from '../context/AdminContext';
 
 export function Projects() {
-  const [currentProjects, setCurrentProjects] = useState<Project[]>([]);
-  const [completedProjects, setCompletedProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { token } = useAdmin();
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         const response = await fetch('http://localhost:5000/api/projects');
-        const projects = await response.json();
-        
-        setCurrentProjects(projects.filter((p: Project) => p.isCurrentProject));
-        setCompletedProjects(projects.filter((p: Project) => !p.isCurrentProject));
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+
+        const data = await response.json();
+        setProjects(data);
+        setError(null);
       } catch (error) {
         console.error('Error fetching projects:', error);
+        setError('Failed to load projects. Please try again later.');
       } finally {
         setIsLoading(false);
       }
@@ -97,6 +104,17 @@ export function Projects() {
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-600 dark:text-red-400">
+        {error}
+      </div>
+    );
+  }
+
+  const currentProjects = projects.filter((p: Project) => p.isCurrentProject);
+  const completedProjects = projects.filter((p: Project) => !p.isCurrentProject);
 
   return (
     <div className="space-y-12">
