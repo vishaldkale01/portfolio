@@ -10,6 +10,8 @@ import projectRoutes from './routes/projects';
 import skillRoutes from './routes/skills';
 import experienceRoutes from './routes/experiences';
 import contactRoutes from './routes/contact';
+import adminRoutes from './routes/admin';
+import { authMiddleware } from './middleware/auth';
 
 dotenv.config();
 
@@ -26,7 +28,10 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// Public routes
+app.use('/api/admin', adminRoutes);
+
+// Protected routes
 app.use('/api/projects', projectRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/experiences', experienceRoutes);

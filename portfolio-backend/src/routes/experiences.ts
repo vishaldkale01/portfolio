@@ -1,12 +1,16 @@
 import { Router } from 'express';
 import { experienceController } from '../controllers/experienceController';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
+// Public routes
 router.get('/', experienceController.getAllExperiences);
 router.get('/current', experienceController.getCurrentExperience);
-router.post('/', experienceController.createExperience);
-router.put('/:id', experienceController.updateExperience);
-router.delete('/:id', experienceController.deleteExperience);
+
+// Protected routes
+router.post('/', authMiddleware, experienceController.createExperience);
+router.put('/:id', authMiddleware, experienceController.updateExperience);
+router.delete('/:id', authMiddleware, experienceController.deleteExperience);
 
 export default router;

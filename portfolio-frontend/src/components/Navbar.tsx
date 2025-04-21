@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAdmin } from '../context/AdminContext';
 
 export function Navbar() {
   const { theme, toggleTheme } = useTheme();
+  const { isAuthenticated } = useAdmin();
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-lg w-full">
@@ -25,6 +27,14 @@ export function Navbar() {
             <Link to="/contact" className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">
               Contact
             </Link>
+            {isAuthenticated && (
+              <Link 
+                to="/admin/dashboard" 
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500"
+              >
+                Admin
+              </Link>
+            )}
             <a 
               href="https://github.com/vishaldkale01" 
               target="_blank" 

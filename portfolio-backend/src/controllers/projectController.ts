@@ -13,7 +13,7 @@ export const projectController = {
   },
 
   // Get current projects
-  getCurrentProjects: async (req: Request, res: Response) => {
+    getCurrentProjects: async (req: Request, res: Response) => {
     try {
       const projects = await Project.find({ isCurrentProject: true });
       res.json(projects);

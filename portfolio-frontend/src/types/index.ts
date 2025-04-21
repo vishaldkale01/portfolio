@@ -31,3 +31,16 @@ export interface Experience {
   technologies: string[];
   isCurrentRole: boolean;
 }
+
+export interface ChatMessage {
+  id: string;
+  text: string;
+  sender: 'user' | 'bot';
+  timestamp: Date;
+}
+
+export interface ChatBotState {
+  isOpen: boolean;
+  messages: ChatMessage[];
+  loading: boolean;
+}
