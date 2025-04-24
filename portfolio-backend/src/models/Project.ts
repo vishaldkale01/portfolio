@@ -4,6 +4,7 @@ interface IProject {
   title: string;
   description: string;
   techStack: string[];
+  projectTypes: string[];  // Added this field
   imageUrl?: string;
   demoLink?: string;
   githubLink?: string;
@@ -13,17 +14,20 @@ interface IProject {
   endDate?: Date;
 }
 
-const projectSchema = new Schema<IProject>({
+const projectSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  techStack: [{ type: String, required: true }],
-  imageUrl: String,
-  demoLink: String,
-  githubLink: String,
-  isCurrentProject: { type: Boolean, default: false },
-  progress: { type: Number, min: 0, max: 100 },
+  techStack: [{ type: String }],
+  projectTypes: [{ 
+    type: String, 
+    enum: ['backend', 'frontend', 'fullstack', 'ai', 'mobile'],
+    required: true 
+  }],
   startDate: { type: Date, required: true },
-  endDate: Date
-}, { timestamps: true });
+  endDate: { type: Date },
+  isCurrentProject: { type: Boolean, default: false }
+}, {
+  timestamps: true
+});
 
 export const Project = model<IProject>('Project', projectSchema);

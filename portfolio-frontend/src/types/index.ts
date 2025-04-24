@@ -1,15 +1,14 @@
+export type ProjectType = 'backend' | 'frontend' | 'fullstack' | 'ai' | 'mobile';
+
 export interface Project {
   _id?: string;
   title: string;
   description: string;
   techStack: string[];
-  imageUrl?: string;
-  demoLink?: string;
-  githubLink?: string;
-  isCurrentProject: boolean;
-  progress?: number;
+  projectTypes: ProjectType[];
   startDate: Date;
   endDate?: Date;
+  isCurrentProject: boolean;
 }
 
 export interface Skill {
@@ -17,7 +16,6 @@ export interface Skill {
   name: string;
   category: string;
   proficiency: number;
-  icon?: string;
 }
 
 export interface Experience {
@@ -25,10 +23,10 @@ export interface Experience {
   company: string;
   role: string;
   description: string;
-  startDate: Date;
-  endDate?: Date;
   responsibilities: string[];
   technologies: string[];
+  startDate: Date;
+  endDate?: Date;
   isCurrentRole: boolean;
 }
 
@@ -43,4 +41,69 @@ export interface ChatBotState {
   isOpen: boolean;
   messages: ChatMessage[];
   loading: boolean;
+}
+
+export interface Contact {
+  _id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: 'pending' | 'replied';
+  reply?: string;
+  replyDate?: Date;
+  createdAt: Date;
+}
+
+export interface ContactSettings {
+  _id?: string;
+  connectWithMeTitle: string;
+  openForOpportunitiesTitle: string;
+  openForOpportunitiesText: string;
+  githubLink: string;
+  linkedinLink: string;
+  email: string;
+  phone: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  expiresIn: number;
+}
+
+export interface ApiErrorResponse {
+  error: string;
+  status: number;
+}
+
+export interface ApiSuccessResponse<T> {
+  data: T;
+  message?: string;
+}
+
+export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+// Utility type to make some properties optional
+export type PartialExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>;
+
+// Form state types for better type safety in forms
+export interface SkillFormState extends Omit<Skill, '_id'> {}
+export interface ProjectFormState extends Omit<Project, '_id'> {}
+export interface ExperienceFormState extends Omit<Experience, '_id'> {}
+export interface ContactFormState extends Omit<Contact, '_id' | 'status' | 'reply' | 'replyDate' | 'createdAt'> {}
+
+export interface ApiError {
+  message: string;
+  statusCode?: number;
+}
+
+export interface LoadingStates {
+  skills: boolean;
+  projects: boolean;
+  experiences: boolean;
+  contacts: boolean;
+}
+
+export interface FormState {
+  isLoading: boolean;
+  error: string | null;
 }

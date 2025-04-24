@@ -11,6 +11,7 @@ import skillRoutes from './routes/skills';
 import experienceRoutes from './routes/experiences';
 import contactRoutes from './routes/contact';
 import adminRoutes from './routes/admin';
+import contactSettingsRoutes from './routes/contactSettings';
 import { authMiddleware } from './middleware/auth';
 
 dotenv.config();
@@ -36,6 +37,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/experiences', experienceRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/contact-settings', contactSettingsRoutes);
 
 // Basic health check route
 app.get('/health', (req, res) => {

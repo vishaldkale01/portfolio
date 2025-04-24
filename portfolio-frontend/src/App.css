@@ -2,6 +2,22 @@
   width: 100%;
   margin: 0;
   padding: 0;
+  position: relative;
+}
+
+/* Fix neural background pattern to not interfere with interactions */
+.neural-bg::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(#4444 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .logo {

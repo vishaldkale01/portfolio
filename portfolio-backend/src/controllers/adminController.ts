@@ -9,9 +9,9 @@ export const adminController = {
   // Login admin
   login: async (req: Request, res: Response) => {
     try {
-      const { username, password } = req.body;
+      const { email, password } = req.body;
 
-      const admin = await Admin.findOne({ username });
+      const admin = await Admin.findOne({ email });
       if (!admin) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
