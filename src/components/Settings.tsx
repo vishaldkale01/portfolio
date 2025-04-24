@@ -17,6 +17,8 @@ interface PageSettings {
     title: string;
     subtitle: string;
     description: string;
+    email: string;
+    phone: string;
   };
   visibility: {
     showSkills: boolean;
@@ -42,6 +44,8 @@ export function Settings() {
       title: "Let's Connect",
       subtitle: 'Get in Touch',
       description: 'I am open to discussing new projects and opportunities',
+      email: '',
+      phone: '',
     },
     visibility: {
       showSkills: true,
@@ -54,10 +58,10 @@ export function Settings() {
       twitter: '',
     },
   });
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSettings();
@@ -79,9 +83,28 @@ export function Settings() {
     }
   };
 
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   const handleSave = async () => {
     setSaving(true);
     setError(null);
+    setSuccess(null);
 
     try {
       const response = await api.put<ApiResponse<PageSettings>>('/settings', settings);
@@ -89,6 +112,12 @@ export function Settings() {
         const settingsData = response.data as unknown as PageSettings;
         if ('homePage' in settingsData) {
           setSettings(settingsData);
+          setSuccess('Settings saved successfully!');
+          
+          // Emit a custom event that the Home component can listen to
+          window.dispatchEvent(new CustomEvent('settings:updated', { 
+            detail: settingsData 
+          }));
         }
       }
     } catch (err) {
@@ -109,9 +138,25 @@ export function Settings() {
   return (
     <div className="space-y-8">
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-lg">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-lg"
+        >
           {error}
-        </div>
+        </motion.div>
+      )}
+
+      {success && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="bg-green-500/10 border border-green-500/30 text-green-400 p-4 rounded-lg"
+        >
+          {success}
+        </motion.div>
       )}
 
       <motion.div
@@ -240,6 +285,38 @@ export function Settings() {
                 })
               }
               rows={3}
+              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              value={settings.contactPage.email}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  contactPage: { ...settings.contactPage, email: e.target.value },
+                })
+              }
+              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Phone
+            </label>
+            <input
+              type="tel"
+              value={settings.contactPage.phone}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  contactPage: { ...settings.contactPage, phone: e.target.value },
+                })
+              }
               className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
             />
           </div>
