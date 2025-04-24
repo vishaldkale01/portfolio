@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import { Skill, Project, Experience, ApiResponse, ApiErrorResponse, Settings } from '../types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
-import { ChatBot } from '../components/ChatBot/ChatBot';
 
 export function Home() {
   const navigate = useNavigate();
@@ -14,16 +13,31 @@ export function Home() {
   const [error, setError] = useState<string | null>(null);
   const [skillsByCategory, setSkillsByCategory] = useState<{ [key: string]: Skill[] }>({});
   const [settings, setSettings] = useState({
-    title: 'Welcome to My Portfolio',
-    subtitle: 'Full Stack Developer',
-    description: 'I build modern web applications with cutting-edge technologies',
-    showChatBot: true,
+    homePage: {
+      title: 'Welcome to My Portfolio',
+      subtitle: 'Full Stack Developer',
+      description: 'I build modern web applications with cutting-edge technologies'
+    },
     socialLinks: {
       github: '',
       linkedin: '',
       twitter: ''
     }
   });
+
+  useEffect(() => {
+    const handleSettingsUpdate = (event: CustomEvent<Settings>) => {
+      setSettings({
+        homePage: event.detail.homePage,
+        socialLinks: event.detail.socialLinks
+      });
+    };
+
+    window.addEventListener('settings:updated', handleSettingsUpdate as EventListener);
+    return () => {
+      window.removeEventListener('settings:updated', handleSettingsUpdate as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +68,7 @@ export function Home() {
 
         if (settingsData) {
           setSettings({
-            ...settingsData.homePage,
+            homePage: settingsData.homePage,
             socialLinks: settingsData.socialLinks
           });
 
@@ -141,15 +155,15 @@ export function Home() {
         >
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              {settings.title}
+              {settings.homePage.title}
             </span>
             <br />
             <span className="text-gray-700 dark:text-gray-300">
-              {settings.subtitle}
+              {settings.homePage.subtitle}
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-12">
-            {settings.description}
+            {settings.homePage.description}
           </p>
           
           <div className="flex justify-center gap-4">
@@ -353,9 +367,6 @@ export function Home() {
           )}
         </div>
       </section>
-
-      {/* Chat Bot */}
-      {settings.showChatBot && <ChatBot />}
 
       {/* Error Message */}
       {error && (

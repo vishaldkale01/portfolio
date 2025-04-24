@@ -11,6 +11,8 @@ interface ISettings {
     title: string;
     subtitle: string;
     description: string;
+    phone: string;
+    email: string;
   };
   visibility: {
     showSkills: boolean;
@@ -34,7 +36,9 @@ const settingsSchema = new Schema<ISettings>({
   contactPage: {
     title: { type: String, default: "Let's Connect" },
     subtitle: { type: String, default: 'Get in Touch' },
-    description: { type: String, default: 'I am open to discussing new projects and opportunities' }
+    description: { type: String, default: 'I am open to discussing new projects and opportunities' },
+    phone: { type: String, default: '' },
+    email: { type: String, default: '' }
   },
   visibility: {
     showSkills: { type: Boolean, default: true },

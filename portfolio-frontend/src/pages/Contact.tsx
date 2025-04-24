@@ -16,7 +16,11 @@ export function Contact() {
   const [settings, setSettings] = useState({
     title: "Let's Connect",
     subtitle: 'Get in Touch',
-    description: 'I am open to discussing new projects and opportunities'
+    description: 'I am open to discussing new projects and opportunities',
+    email: '',
+    phone: '',
+    github: '',
+    linkedin: ''
   });
 
   useEffect(() => {
@@ -32,7 +36,11 @@ export function Contact() {
         setSettings({
           title: settingsData.contactPage.title || "Let's Connect",
           subtitle: settingsData.contactPage.subtitle || 'Get in Touch',
-          description: settingsData.contactPage.description || 'I am open to discussing new projects and opportunities'
+          description: settingsData.contactPage.description || 'I am open to discussing new projects and opportunities',
+          email: settingsData.contactPage.email || '',
+          phone: settingsData.contactPage.phone || '',
+          github: settingsData.socialLinks.github || '',
+          linkedin: settingsData.socialLinks.linkedin || ''
         });
       }
     } catch (err) {
@@ -111,10 +119,10 @@ export function Contact() {
                   <div>
                     <h3 className="text-lg font-semibold mb-1">Email</h3>
                     <a 
-                      href={`mailto:${'youremail@example.com'}`}
+                      href={`mailto:${settings.email}`}
                       className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
                     >
-                      {'youremail@example.com'}
+                      {settings.email || 'Email not set'}
                     </a>
                   </div>
                 </div>
@@ -128,10 +136,10 @@ export function Contact() {
                   <div>
                     <h3 className="text-lg font-semibold mb-1">Phone</h3>
                     <a 
-                      href={`tel:${'+1234567890'}`}
+                      href={`tel:${settings.phone}`}
                       className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
                     >
-                      {'+1234567890'}
+                      {settings.phone || 'Phone not set'}
                     </a>
                   </div>
                 </div>
@@ -145,12 +153,12 @@ export function Contact() {
                   <div>
                     <h3 className="text-lg font-semibold mb-1">GitHub</h3>
                     <a 
-                      href={'https://github.com/yourprofile'} 
+                      href={settings.github} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
                     >
-                      View Profile
+                      {settings.github ? 'View Profile' : 'GitHub not set'}
                     </a>
                   </div>
                 </div>
@@ -164,12 +172,12 @@ export function Contact() {
                   <div>
                     <h3 className="text-lg font-semibold mb-1">LinkedIn</h3>
                     <a 
-                      href={'https://linkedin.com/in/yourprofile'} 
+                      href={settings.linkedin} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
                     >
-                      Connect with Me
+                      {settings.linkedin ? 'Connect with Me' : 'LinkedIn not set'}
                     </a>
                   </div>
                 </div>

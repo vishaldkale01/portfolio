@@ -55,6 +55,8 @@ export interface Settings {
     title: string;
     subtitle: string;
     description: string;
+    phone: string;
+    email: string;
   };
   visibility: {
     showSkills: boolean;
