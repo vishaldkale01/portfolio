@@ -6,6 +6,7 @@ import { api } from '../utils/api';
 import { Button } from '../components/Button';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { Skill, Project, Experience, Contact, ApiErrorResponse } from '../types';
+import { Settings } from '../components/Settings';
 
 type ProjectType = 'backend' | 'frontend' | 'fullstack' | 'ai' | 'mobile';
 
@@ -417,7 +418,7 @@ export function AdminDashboard() {
 
         {/* Navigation Tabs */}
         <nav className="flex space-x-4 border-b border-gray-800 mb-6">
-          {['project-types', 'skills', 'projects', 'experiences', 'contacts'].map((tab) => (
+          {['project-types', 'skills', 'projects', 'experiences', 'contacts', 'settings'].map((tab) => (
             <Button
               key={tab}
               variant={activeTab === tab ? 'primary' : 'secondary'}
@@ -1207,6 +1208,10 @@ export function AdminDashboard() {
                     ))}
                   </div>
                 )}
+              </div>
+            ) : activeTab === 'settings' ? (
+              <div className="space-y-6">
+                <Settings />
               </div>
             ) : null}
           </motion.div>
