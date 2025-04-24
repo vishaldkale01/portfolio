@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAdmin } from '../context/AdminContext';
+import { useTheme } from '../context/ThemeContext';
 import { api } from '../utils/api';
 import { Button } from '../components/Button';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -15,6 +16,7 @@ const isErrorResponse = (res: any): res is ApiErrorResponse => {
 };
 
 export function AdminDashboard() {
+  const { theme } = useTheme();
   const [newProjectType, setNewProjectType] = useState('');
   const [projectTypes, setProjectTypes] = useState<ProjectType[]>(['backend', 'frontend', 'fullstack', 'ai', 'mobile']);
   const [editingProjectType, setEditingProjectType] = useState<{ oldType: ProjectType; newType: string } | null>(null);
@@ -56,6 +58,7 @@ export function AdminDashboard() {
   const [newCategoryName, setNewCategoryName] = useState('');
 
   const [projects, setProjects] = useState<Project[]>([]);
+
   const [newProject, setNewProject] = useState<Partial<Project>>({
     title: '',
     description: '',
@@ -384,7 +387,7 @@ export function AdminDashboard() {
     try {
       const response = await api.delete(`/contact/${id}`);
       if (isErrorResponse(response)) throw new Error(response.error);
-      await fetchContacts();
+      await fetchContacts(); // Refresh the entire contact list after deletion
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete contact');
     } finally {
@@ -393,8 +396,8 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100'}`}>
+      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Error Message */}
         <AnimatePresence>
           {error && (
@@ -402,7 +405,7 @@ export function AdminDashboard() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400"
+              className="mb-4 bg-red-500/10 border border-red-500/30 p-4 rounded-lg text-red-400"
             >
               {error}
               <Button 
@@ -417,16 +420,19 @@ export function AdminDashboard() {
         </AnimatePresence>
 
         {/* Navigation Tabs */}
-        <nav className="flex space-x-4 border-b border-gray-800 mb-6">
+        <nav className="flex flex-wrap gap-2 mb-8 p-2 bg-gray-800/30 backdrop-blur-sm rounded-lg">
           {['project-types', 'skills', 'projects', 'experiences', 'contacts', 'settings'].map((tab) => (
-            <Button
+            <button
               key={tab}
-              variant={activeTab === tab ? 'primary' : 'secondary'}
               onClick={() => setActiveTab(tab)}
-              className="capitalize"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === tab 
+                  ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+              }`}
             >
               {tab.replace('-', ' ')}
-            </Button>
+            </button>
           ))}
         </nav>
 
@@ -437,137 +443,65 @@ export function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-gray-900/50 rounded-lg p-6"
+            className="space-y-8"
           >
-            {activeTab === 'project-types' ? (
-              <div className="space-y-6">
-                <div className="mb-8">
-                  <h3 className="text-xl font-bold text-blue-400 mb-4">Manage Project Types</h3>
-                  <div className="flex gap-4 mb-6">
-                    <input
-                      type="text"
-                      value={newProjectType}
-                      onChange={(e) => setNewProjectType(e.target.value)}
-                      placeholder="New project type"
-                      className="flex-1 p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                    />
-                    <Button onClick={handleAddProjectType}>
-                      Add Type
-                    </Button>
-                  </div>
+            {activeTab === 'skills' && (
+              <div className="space-y-8">
+                {/* Add/Edit Skill Form */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
+                >
+                  <h2 className="text-xl font-bold text-blue-400 mb-6">
+                    {editingSkill ? 'Edit Skill' : 'Add New Skill'}
+                  </h2>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {projectTypes.map((type) => (
-                      <div
-                        key={type}
-                        className="relative bg-gray-800/50 p-4 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 group"
-                      >
-                        {editingProjectType?.oldType === type ? (
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={editingProjectType.newType}
-                              onChange={(e) => setEditingProjectType({ 
-                                oldType: type, 
-                                newType: e.target.value 
-                              })}
-                              className="flex-1 p-2 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                            />
-                            <Button
-                              variant="primary"
-                              onClick={handleEditProjectType}
-                              className="px-3"
-                            >
-                              Save
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              onClick={() => setEditingProjectType(null)}
-                              className="px-3"
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-300">{type}</span>
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="secondary"
-                                onClick={() => setEditingProjectType({ oldType: type, newType: type })}
-                                className="px-3"
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                variant="danger"
-                                onClick={() => handleDeleteProjectType(type)}
-                                className="px-3"
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        )}
+                  <form onSubmit={editingSkill ? handleEditSkill : handleCreateSkill} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editingSkill?.name || newSkill.name}
+                          onChange={e => editingSkill 
+                            ? setEditingSkill({...editingSkill, name: e.target.value})
+                            : setNewSkill({...newSkill, name: e.target.value})}
+                          className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                          required
+                        />
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : activeTab === 'skills' ? (
-              <div className="space-y-6">
-                <form onSubmit={editingSkill ? handleEditSkill : handleCreateSkill} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
-                      <input
-                        type="text"
-                        value={editingSkill?.name || newSkill.name}
-                        onChange={e => editingSkill 
-                          ? setEditingSkill({...editingSkill, name: e.target.value})
-                          : setNewSkill({...newSkill, name: e.target.value})}
-                        className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
-                      <div className="relative">
+                      
+                      <div>
+                        <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                          Category
+                        </label>
                         {isAddingCategory ? (
-                          <div className="flex space-x-2">
+                          <div className="flex gap-2">
                             <input
                               type="text"
                               value={newCategoryName}
                               onChange={e => setNewCategoryName(e.target.value)}
-                              className="flex-1 p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
+                              className={`flex-1 p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
                               placeholder="Enter new category"
                               autoFocus
                             />
-                            <Button
-                              onClick={handleAddCategory}
-                              variant="primary"
-                            >
-                              Add
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                setIsAddingCategory(false);
-                                setNewCategoryName('');
-                              }}
-                              variant="secondary"
-                            >
-                              Cancel
-                            </Button>
+                            <Button onClick={handleAddCategory}>Add</Button>
+                            <Button variant="secondary" onClick={() => {
+                              setIsAddingCategory(false);
+                              setNewCategoryName('');
+                            }}>Cancel</Button>
                           </div>
                         ) : (
-                          <div className="flex space-x-2">
+                          <div className="flex gap-2">
                             <select
                               value={editingSkill?.category || newSkill.category}
                               onChange={e => editingSkill
                                 ? setEditingSkill({...editingSkill, category: e.target.value})
                                 : setNewSkill({...newSkill, category: e.target.value})}
-                              className="flex-1 p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
+                              className={`flex-1 p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
                               required
                             >
                               <option value="">Select a category</option>
@@ -575,57 +509,60 @@ export function AdminDashboard() {
                                 <option key={category} value={category}>{category}</option>
                               ))}
                             </select>
-                            <Button
-                              onClick={() => setIsAddingCategory(true)}
-                              variant="secondary"
-                            >
-                              New Category
-                            </Button>
+                            <Button variant="secondary" onClick={() => setIsAddingCategory(true)}>New</Button>
                           </div>
                         )}
                       </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">Proficiency</label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={editingSkill?.proficiency || newSkill.proficiency}
-                      onChange={e => {
-                        const value = parseInt(e.target.value);
-                        editingSkill
-                          ? setEditingSkill({...editingSkill, proficiency: value})
-                          : setNewSkill({...newSkill, proficiency: value});
-                      }}
-                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="text-sm text-gray-400 mt-1">
-                      {editingSkill?.proficiency || newSkill.proficiency}%
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                          Proficiency
+                        </label>
+                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                          {editingSkill?.proficiency || newSkill.proficiency}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={editingSkill?.proficiency || newSkill.proficiency}
+                        onChange={e => {
+                          const value = parseInt(e.target.value);
+                          editingSkill
+                            ? setEditingSkill({...editingSkill, proficiency: value})
+                            : setNewSkill({...newSkill, proficiency: value});
+                        }}
+                        className="w-full h-2 bg-gray-700/50 rounded-full appearance-none cursor-pointer focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:cursor-pointer hover:[&::-webkit-slider-thumb]:bg-blue-400 active:[&::-webkit-slider-thumb]:scale-110 transition-all duration-100"
+                        style={{
+                          background: `linear-gradient(to right, #3b82f6 ${editingSkill?.proficiency || newSkill.proficiency}%, rgba(55, 65, 81, 0.5) ${editingSkill?.proficiency || newSkill.proficiency}%)`
+                        }}
+                      />
                     </div>
-                  </div>
-                  
-                  <div className="flex space-x-4">
-                    <Button
-                      type="submit"
-                      isLoading={submitLoading}
-                      loadingText={editingSkill ? "Updating..." : "Adding..."}
-                    >
-                      {editingSkill ? 'Update Skill' : 'Add Skill'}
-                    </Button>
-                    {editingSkill && (
-                      <Button
-                        variant="secondary"
-                        onClick={() => setEditingSkill(null)}
-                      >
-                        Cancel
-                      </Button>
-                    )}
-                  </div>
-                </form>
 
+                    <div className="flex gap-4">
+                      <Button
+                        type="submit"
+                        isLoading={submitLoading}
+                        loadingText={editingSkill ? "Updating..." : "Adding..."}
+                      >
+                        {editingSkill ? 'Update Skill' : 'Add Skill'}
+                      </Button>
+                      {editingSkill && (
+                        <Button
+                          variant="secondary"
+                          onClick={() => setEditingSkill(null)}
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+                </motion.div>
+
+                {/* Skills Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {skills.map((skill) => (
                     <motion.div
@@ -634,22 +571,34 @@ export function AdminDashboard() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
-                      className="relative bg-gray-900/50 p-6 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 group"
+                      className={`relative group ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10`}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-lg"></div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       <div className="relative">
-                        <h3 className="font-bold text-blue-400">{skill.name}</h3>
-                        <p className="text-gray-400">Category: {skill.category}</p>
-                        <div className="mt-2">
-                          <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-300"
-                              style={{ width: `${skill.proficiency}%` }}
-                            ></div>
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h3 className={`font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} text-lg`}>
+                              {skill.name}
+                            </h3>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                              {skill.category}
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-400 mt-1">Proficiency: {skill.proficiency}%</p>
+                          <span className={`text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} font-semibold`}>
+                            {skill.proficiency}%
+                          </span>
                         </div>
-                        <div className="mt-4 flex space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                        <div className="mt-4">
+                          <div className="relative h-2 bg-gray-700/20 rounded-full overflow-hidden">
+                            <div 
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-300"
+                              style={{ width: `${skill.proficiency}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-6 flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
                             variant="secondary"
                             onClick={() => setEditingSkill(skill)}
@@ -668,6 +617,62 @@ export function AdminDashboard() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Other tabs content */}
+            {activeTab === 'project-types' ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
+              >
+                <h2 className="text-xl font-bold text-blue-400 mb-6">Manage Project Types</h2>
+                <div className="flex gap-4 mb-6">
+                  <input
+                    type="text"
+                    value={newProjectType}
+                    onChange={(e) => setNewProjectType(e.target.value)}
+                    placeholder="New project type"
+                    className={`flex-1 p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                  />
+                  <Button onClick={handleAddProjectType}>
+                    Add Type
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {projectTypes.map((type) => (
+                    <div
+                      key={type}
+                      className={`relative group ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-4 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300`}
+                    >
+                      {editingProjectType?.oldType === type ? (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={editingProjectType.newType}
+                            onChange={(e) => setEditingProjectType({ 
+                              oldType: type, 
+                              newType: e.target.value 
+                            })}
+                            className={`flex-1 p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                          />
+                          <Button onClick={handleEditProjectType}>Save</Button>
+                          <Button variant="secondary" onClick={() => setEditingProjectType(null)}>Cancel</Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{type}</span>
+                          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="secondary" onClick={() => setEditingProjectType({ oldType: type, newType: type })}>Edit</Button>
+                            <Button variant="danger" onClick={() => handleDeleteProjectType(type)}>Delete</Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             ) : activeTab === 'projects' ? (
               <div className="space-y-6">
                 {loadingStates.projects ? (
@@ -679,147 +684,172 @@ export function AdminDashboard() {
                   </div>
                 ) : (
                   <>
-                    <form onSubmit={editingProject ? handleEditProject : handleCreateProject} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
+                    >
+                      <h2 className="text-xl font-bold text-blue-400 mb-6">
+                        {editingProject ? 'Edit Project' : 'Add New Project'}
+                      </h2>
+                      
+                      <form onSubmit={editingProject ? handleEditProject : handleCreateProject} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                              Title
+                            </label>
+                            <input
+                              type="text"
+                              value={editingProject?.title || newProject.title}
+                              onChange={e => editingProject
+                                ? setEditingProject({...editingProject, title: e.target.value})
+                                : setNewProject({...newProject, title: e.target.value})}
+                              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                              Description
+                            </label>
+                            <textarea
+                              value={editingProject?.description || newProject.description}
+                              onChange={e => editingProject
+                                ? setEditingProject({...editingProject, description: e.target.value})
+                                : setNewProject({...newProject, description: e.target.value})}
+                              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                              rows={3}
+                              required
+                            />
+                          </div>
+                        </div>
+
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Title</label>
+                          <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                            Project Types
+                          </label>
+                          <div className="flex flex-wrap gap-3">
+                            {projectTypes.map(type => (
+                              <button
+                                key={type}
+                                type="button"
+                                onClick={() => {
+                                  const currentTypes = editingProject?.projectTypes || newProject.projectTypes || [];
+                                  const updatedTypes = currentTypes.includes(type)
+                                    ? currentTypes.filter(t => t !== type)
+                                    : [...currentTypes, type];
+                                  
+                                  editingProject
+                                    ? setEditingProject({...editingProject, projectTypes: updatedTypes})
+                                    : setNewProject({...newProject, projectTypes: updatedTypes});
+                                }}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                  (editingProject?.projectTypes || newProject.projectTypes || []).includes(type)
+                                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                                    : `${theme === 'dark' ? 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-200'}`
+                                }`}
+                              >
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                            Tech Stack
+                          </label>
                           <input
                             type="text"
-                            value={editingProject?.title || newProject.title}
-                            onChange={e => editingProject
-                              ? setEditingProject({...editingProject, title: e.target.value})
-                              : setNewProject({...newProject, title: e.target.value})}
-                            className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                            required
+                            value={(editingProject?.techStack || newProject.techStack || []).join(', ')}
+                            onChange={e => {
+                              const techStack = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
+                              editingProject
+                                ? setEditingProject({...editingProject, techStack})
+                                : setNewProject({...newProject, techStack});
+                            }}
+                            placeholder="Enter technologies separated by commas"
+                            className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
                           />
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                          <textarea
-                            value={editingProject?.description || newProject.description}
-                            onChange={e => editingProject
-                              ? setEditingProject({...editingProject, description: e.target.value})
-                              : setNewProject({...newProject, description: e.target.value})}
-                            className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                            rows={3}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Project Types</label>
-                        <div className="flex flex-wrap gap-3">
-                          {projectTypes.map(type => (
-                            <button
-                              key={type}
-                              type="button"
-                              onClick={() => {
-                                const currentTypes = editingProject?.projectTypes || newProject.projectTypes || [];
-                                const updatedTypes = currentTypes.includes(type)
-                                  ? currentTypes.filter(t => t !== type)
-                                  : [...currentTypes, type]
-                                
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                              Start Date
+                            </label>
+                            <input
+                              type="date"
+                              value={editingProject?.startDate?.toString().split('T')[0] || newProject.startDate?.toString().split('T')[0]}
+                              onChange={e => {
+                                const startDate = new Date(e.target.value);
                                 editingProject
-                                  ? setEditingProject({...editingProject, projectTypes: updatedTypes})
-                                  : setNewProject({...newProject, projectTypes: updatedTypes});
+                                  ? setEditingProject({...editingProject, startDate})
+                                  : setNewProject({...newProject, startDate});
                               }}
-                              className={`px-4 py-2 rounded-lg text-sm transition-all ${
-                                (editingProject?.projectTypes || newProject.projectTypes || []).includes(type)
-                                  ? 'bg-blue-500 text-white'
-                                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                              }`}
-                            >
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </button>
-                          ))}
+                              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                              End Date
+                            </label>
+                            <input
+                              type="date"
+                              value={editingProject?.endDate?.toString().split('T')[0] || ''}
+                              onChange={e => {
+                                const endDate = e.target.value ? new Date(e.target.value) : undefined;
+                                editingProject
+                                  ? setEditingProject({...editingProject, endDate})
+                                  : setNewProject({...newProject, endDate});
+                              }}
+                              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Tech Stack</label>
-                        <input
-                          type="text"
-                          value={(editingProject?.techStack || newProject.techStack || []).join(', ')}
-                          onChange={e => {
-                            const techStack = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
-                            editingProject
-                              ? setEditingProject({...editingProject, techStack})
-                              : setNewProject({...newProject, techStack});
-                          }}
-                          placeholder="Enter technologies separated by commas"
-                          className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Start Date</label>
+                        <div className="flex items-center space-x-2">
                           <input
-                            type="date"
-                            value={editingProject?.startDate?.toString().split('T')[0] || newProject.startDate?.toString().split('T')[0]}
+                            type="checkbox"
+                            checked={editingProject?.isCurrentProject || newProject.isCurrentProject}
                             onChange={e => {
-                              const startDate = new Date(e.target.value);
+                              const isCurrentProject = e.target.checked;
                               editingProject
-                                ? setEditingProject({...editingProject, startDate})
-                                : setNewProject({...newProject, startDate});
+                                ? setEditingProject({...editingProject, isCurrentProject})
+                                : setNewProject({...newProject, isCurrentProject});
                             }}
-                            className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                            required
+                            className="h-4 w-4 text-blue-500 border-blue-500/30 rounded"
                           />
+                          <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                            Current Project
+                          </label>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">End Date</label>
-                          <input
-                            type="date"
-                            value={editingProject?.endDate?.toString().split('T')[0] || ''}
-                            onChange={e => {
-                              const endDate = e.target.value ? new Date(e.target.value) : undefined;
-                              editingProject
-                                ? setEditingProject({...editingProject, endDate})
-                                : setNewProject({...newProject, endDate});
-                            }}
-                            className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={editingProject?.isCurrentProject || newProject.isCurrentProject}
-                          onChange={e => {
-                            const isCurrentProject = e.target.checked;
-                            editingProject
-                              ? setEditingProject({...editingProject, isCurrentProject})
-                              : setNewProject({...newProject, isCurrentProject});
-                          }}
-                          className="h-4 w-4 text-blue-500 border-blue-500/30 rounded focus:ring-blue-400"
-                        />
-                        <label className="text-sm font-medium text-gray-300">Current Project</label>
-                      </div>
-
-                      <div className="flex space-x-4">
-                        <Button
-                          type="submit"
-                          isLoading={submitLoading}
-                          loadingText={editingProject ? "Updating..." : "Adding..."}
-                        >
-                          {editingProject ? 'Update Project' : 'Add Project'}
-                        </Button>
-                        {editingProject && (
+                        <div className="flex gap-4">
                           <Button
-                            variant="secondary"
-                            onClick={() => setEditingProject(null)}
+                            type="submit"
+                            isLoading={submitLoading}
+                            loadingText={editingProject ? "Updating..." : "Adding..."}
                           >
-                            Cancel
+                            {editingProject ? 'Update Project' : 'Add Project'}
                           </Button>
-                        )}
-                      </div>
-                    </form>
+                          {editingProject && (
+                            <Button
+                              variant="secondary"
+                              onClick={() => setEditingProject(null)}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </div>
+                      </form>
+                    </motion.div>
 
+                    {/* Projects Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {projects.map((project) => (
                         <motion.div
@@ -828,12 +858,19 @@ export function AdminDashboard() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -20 }}
-                          className="relative bg-gray-900/50 p-6 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 group"
+                          className={`relative group ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10`}
                         >
                           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-lg"></div>
                           <div className="relative">
                             <div className="flex justify-between items-start">
-                              <h3 className="font-bold text-blue-400">{project.title}</h3>
+                              <div>
+                                <h3 className={`font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} text-lg`}>
+                                  {project.title}
+                                </h3>
+                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                                  {project.description}
+                                </p>
+                              </div>
                               {project.isCurrentProject && (
                                 <span className="px-2 py-1 text-xs rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">
                                   Current Project
@@ -841,27 +878,50 @@ export function AdminDashboard() {
                               )}
                             </div>
 
-                            <p className="mt-2 text-gray-300">{project.description}</p>
+                            <div className="mt-4">
+                              <h4 className="text-sm font-semibold text-gray-400 mb-2">Technologies:</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {project.techStack.map((tech, index) => (
+                                  <span
+                                    key={index}
+                                    className="px-2 py-1 text-xs rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30"
+                                  >
+                                    {tech}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
 
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              {project.techStack.map((tech, index) => (
-                                <span
-                                  key={index}
-                                  className="px-2 py-1 text-xs rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30"
-                                >
-                                  {tech}
-                                </span>
-                              ))}
+                            <div className="mt-4">
+                              <h4 className="text-sm font-semibold text-gray-400 mb-2">Project Types:</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {project.projectTypes.map((type, index) => (
+                                  <span
+                                    key={index}
+                                    className="px-2 py-1 text-xs rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30"
+                                  >
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
 
                             <div className="mt-4 text-sm text-gray-400">
-                              <p>Started: {new Date(project.startDate).toLocaleDateString()}</p>
+                              <p>Started: {project.startDate ? new Date(project.startDate).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              }) : 'Date not set'}</p>
                               {project.endDate && (
-                                <p>Completed: {new Date(project.endDate).toLocaleDateString()}</p>
+                                <p>Completed: {new Date(project.endDate).toLocaleDateString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric' 
+                                })}</p>
                               )}
                             </div>
 
-                            <div className="mt-4 flex space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="mt-6 flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 variant="secondary"
                                 onClick={() => setEditingProject(project)}
@@ -878,7 +938,6 @@ export function AdminDashboard() {
                           </div>
                         </motion.div>
                       ))}
-
                     </div>
                   </>
                 )}
@@ -894,146 +953,156 @@ export function AdminDashboard() {
                   </div>
                 ) : (
                   <>
-                    <form onSubmit={editingExperience ? handleEditExperience : handleCreateExperience} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
+                    >
+                      <h2 className="text-xl font-bold text-blue-400 mb-6">
+                        {editingExperience ? 'Edit Experience' : 'Add New Experience'}
+                      </h2>
+                      
+                      <form onSubmit={editingExperience ? handleEditExperience : handleCreateExperience} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Company</label>
+                            <input
+                              type="text"
+                              value={editingExperience?.company || newExperience.company}
+                              onChange={e => editingExperience
+                                ? setEditingExperience({...editingExperience, company: e.target.value})
+                                : setNewExperience({...newExperience, company: e.target.value})}
+                              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Role</label>
+                            <input
+                              type="text"
+                              value={editingExperience?.role || newExperience.role}
+                              onChange={e => editingExperience
+                                ? setEditingExperience({...editingExperience, role: e.target.value})
+                                : setNewExperience({...newExperience, role: e.target.value})}
+                              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                              required
+                            />
+                          </div>
+                        </div>
+
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Company</label>
+                          <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Description</label>
+                          <textarea
+                            value={editingExperience?.description || newExperience.description}
+                            onChange={e => editingExperience
+                              ? setEditingExperience({...editingExperience, description: e.target.value})
+                              : setNewExperience({...newExperience, description: e.target.value})}
+                            className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                            rows={3}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Technologies</label>
                           <input
                             type="text"
-                            value={editingExperience?.company || newExperience.company}
-                            onChange={e => editingExperience
-                              ? setEditingExperience({...editingExperience, company: e.target.value})
-                              : setNewExperience({...newExperience, company: e.target.value})}
-                            className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Role</label>
-                          <input
-                            type="text"
-                            value={editingExperience?.role || newExperience.role}
-                            onChange={e => editingExperience
-                              ? setEditingExperience({...editingExperience, role: e.target.value})
-                              : setNewExperience({...newExperience, role: e.target.value})}
-                            className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                        <textarea
-                          value={editingExperience?.description || newExperience.description}
-                          onChange={e => editingExperience
-                            ? setEditingExperience({...editingExperience, description: e.target.value})
-                            : setNewExperience({...newExperience, description: e.target.value})}
-                          className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                          rows={3}
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Technologies</label>
-                        <input
-                          type="text"
-                          value={(editingExperience?.technologies || newExperience.technologies || []).join(', ')}
-                          onChange={e => {
-                            const technologies = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
-                            editingExperience
-                              ? setEditingExperience({...editingExperience, technologies})
-                              : setNewExperience({...newExperience, technologies});
-                          }}
-                          placeholder="Enter technologies separated by commas"
-                          className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Responsibilities</label>
-                        <textarea
-                          value={(editingExperience?.responsibilities || newExperience.responsibilities || []).join('\n')}
-                          onChange={e => {
-                            const responsibilities = e.target.value.split('\n').map(r => r.trim()).filter(Boolean);
-                            editingExperience
-                              ? setEditingExperience({...editingExperience, responsibilities})
-                              : setNewExperience({...newExperience, responsibilities});
-                          }}
-                          placeholder="Enter responsibilities (one per line)"
-                          className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                          rows={4}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Start Date</label>
-                          <input
-                            type="date"
-                            value={editingExperience?.startDate?.toString().split('T')[0] || newExperience.startDate?.toString().split('T')[0]}
+                            value={(editingExperience?.technologies || newExperience.technologies || []).join(', ')}
                             onChange={e => {
-                              const startDate = new Date(e.target.value);
+                              const technologies = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
                               editingExperience
-                                ? setEditingExperience({...editingExperience, startDate})
-                                : setNewExperience({...newExperience, startDate});
+                                ? setEditingExperience({...editingExperience, technologies})
+                                : setNewExperience({...newExperience, technologies});
                             }}
-                            className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                            required
+                            placeholder="Enter technologies separated by commas"
+                            className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">End Date</label>
-                          <input
-                            type="date"
-                            value={editingExperience?.endDate?.toString().split('T')[0] || ''}
+                          <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Responsibilities</label>
+                          <textarea
+                            value={(editingExperience?.responsibilities || newExperience.responsibilities || []).join('\n')}
                             onChange={e => {
-                              const endDate = e.target.value ? new Date(e.target.value) : undefined;
+                              const responsibilities = e.target.value.split('\n').map(r => r.trim()).filter(Boolean);
                               editingExperience
-                                ? setEditingExperience({...editingExperience, endDate})
-                                : setNewExperience({...newExperience, endDate});
+                                ? setEditingExperience({...editingExperience, responsibilities})
+                                : setNewExperience({...newExperience, responsibilities});
                             }}
-                            className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
+                            placeholder="Enter responsibilities (one per line)"
+                            className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                            rows={4}
                           />
                         </div>
-                      </div>
 
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={editingExperience?.isCurrentRole || newExperience.isCurrentRole}
-                          onChange={e => {
-                            const isCurrentRole = e.target.checked;
-                            editingExperience
-                              ? setEditingExperience({...editingExperience, isCurrentRole})
-                              : setNewExperience({...newExperience, isCurrentRole});
-                          }}
-                          className="h-4 w-4 text-blue-500 border-blue-500/30 rounded focus:ring-blue-400"
-                        />
-                        <label className="text-sm font-medium text-gray-300">Current Role</label>
-                      </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Start Date</label>
+                            <input
+                              type="date"
+                              value={editingExperience?.startDate?.toString().split('T')[0] || newExperience.startDate?.toString().split('T')[0]}
+                              onChange={e => {
+                                const startDate = new Date(e.target.value);
+                                editingExperience
+                                  ? setEditingExperience({...editingExperience, startDate})
+                                  : setNewExperience({...newExperience, startDate});
+                              }}
+                              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                              required
+                            />
+                          </div>
 
-                      <div className="flex space-x-4">
-                        <Button
-                          type="submit"
-                          isLoading={submitLoading}
-                          loadingText={editingExperience ? "Updating..." : "Adding..."}
-                        >
-                          {editingExperience ? 'Update Experience' : 'Add Experience'}
-                        </Button>
-                        {editingExperience && (
+                          <div>
+                            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>End Date</label>
+                            <input
+                              type="date"
+                              value={editingExperience?.endDate?.toString().split('T')[0] || ''}
+                              onChange={e => {
+                                const endDate = e.target.value ? new Date(e.target.value) : undefined;
+                                editingExperience
+                                  ? setEditingExperience({...editingExperience, endDate})
+                                  : setNewExperience({...newExperience, endDate});
+                              }}
+                              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={editingExperience?.isCurrentRole || newExperience.isCurrentRole}
+                            onChange={e => {
+                              const isCurrentRole = e.target.checked;
+                              editingExperience
+                                ? setEditingExperience({...editingExperience, isCurrentRole})
+                                : setNewExperience({...newExperience, isCurrentRole});
+                            }}
+                            className="h-4 w-4 text-blue-500 border-blue-500/30 rounded"
+                          />
+                          <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Current Role</label>
+                        </div>
+
+                        <div className="flex gap-4">
                           <Button
-                            variant="secondary"
-                            onClick={() => setEditingExperience(null)}
+                            type="submit"
+                            isLoading={submitLoading}
+                            loadingText={editingExperience ? "Updating..." : "Adding..."}
                           >
-                            Cancel
+                            {editingExperience ? 'Update Experience' : 'Add Experience'}
                           </Button>
-                        )}
-                      </div>
-                    </form>
+                          {editingExperience && (
+                            <Button
+                              variant="secondary"
+                              onClick={() => setEditingExperience(null)}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </div>
+                      </form>
+                    </motion.div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {experiences.map((experience) => (
@@ -1043,23 +1112,23 @@ export function AdminDashboard() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -20 }}
-                          className="relative bg-gray-900/50 p-6 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 group"
+                          className={`relative group ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10`}
                         >
-                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-lg"></div>
+                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           <div className="relative">
-                            <div className="flex justify-between items-start">
+                            <div className="flex items-start justify-between mb-4">
                               <div>
-                                <h3 className="font-bold text-blue-400">{experience.company}</h3>
-                                <p className="text-gray-300">{experience.role}</p>
+                                <h3 className={`font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} text-lg`}>
+                                  {experience.company}
+                                </h3>
+                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                                  {experience.role}
+                                </p>
                               </div>
-                              {experience.isCurrentRole && (
-                                <span className="px-2 py-1 text-xs rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">
-                                  Current Role
-                                </span>
-                              )}
+                              <span className={`text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} font-semibold`}>
+                                {experience.isCurrentRole ? 'Current' : 'Past'}
+                              </span>
                             </div>
-
-                            <p className="mt-2 text-gray-300">{experience.description}</p>
 
                             <div className="mt-4">
                               <h4 className="text-sm font-semibold text-gray-400 mb-2">Technologies:</h4>
@@ -1085,9 +1154,17 @@ export function AdminDashboard() {
                             </div>
 
                             <div className="mt-4 text-sm text-gray-400">
-                              <p>Started: {new Date(experience.startDate).toLocaleDateString()}</p>
+                              <p>Started: {experience.startDate ? new Date(experience.startDate).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              }) : 'Date not set'}</p>
                               {experience.endDate && (
-                                <p>Ended: {new Date(experience.endDate).toLocaleDateString()}</p>
+                                <p>Ended: {new Date(experience.endDate).toLocaleDateString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric' 
+                                })}</p>
                               )}
                             </div>
 
@@ -1108,7 +1185,6 @@ export function AdminDashboard() {
                           </div>
                         </motion.div>
                       ))}
-
                     </div>
                   </>
                 )}
@@ -1126,83 +1202,144 @@ export function AdminDashboard() {
                   <div className="grid grid-cols-1 gap-6">
                     {contacts.map((contact) => (
                       <motion.div
-                        key={contact._id}
+                        key={contact.email}
                         layout
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="relative bg-gray-900/50 p-6 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 group"
+                        className={`relative group ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10`}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-lg"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div className="relative">
-                          <div className="flex justify-between items-start">
+                          <div className="flex justify-between items-start mb-4">
                             <div>
-                              <h3 className="font-bold text-blue-400">{contact.name}</h3>
-                              <a href={`mailto:${contact.email}`} className="text-gray-300 hover:text-blue-400 transition-colors">
+                              <h3 className={`font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} text-lg`}>
+                                {contact.name}
+                              </h3>
+                              <a 
+                                href={`mailto:${contact.email}`} 
+                                className="text-gray-400 hover:text-blue-400 transition-colors"
+                              >
                                 {contact.email}
                               </a>
-                            </div>
-                            <span className={`px-2 py-1 text-xs rounded-full ${
-                              contact.status === 'pending'
-                                ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
-                                : 'bg-green-500/10 text-green-400 border-green-500/30'
-                            } border`}>
-                              {contact.status === 'pending' ? 'Pending' : 'Replied'}
-                            </span>
-                          </div>
-
-                          <div className="mt-4">
-                            <h4 className="text-sm font-semibold text-gray-400 mb-2">Message:</h4>
-                            <p className="text-gray-300 whitespace-pre-wrap">{contact.message}</p>
-                          </div>
-
-                          {contact.reply && (
-                            <div className="mt-4">
-                              <h4 className="text-sm font-semibold text-gray-400 mb-2">Reply:</h4>
-                              <p className="text-gray-300 whitespace-pre-wrap">{contact.reply}</p>
-                              <p className="text-sm text-gray-400 mt-2">
-                                Replied on: {new Date(contact.replyDate!).toLocaleDateString()}
-                              </p>
-                            </div>
-                          )}
-
-                          <div className="mt-4 text-sm text-gray-400">
-                            Received: {new Date(contact.createdAt).toLocaleDateString()}
-                          </div>
-
-                          {contact.status === 'pending' && (
-                            <form onSubmit={e => {
-                              e.preventDefault();
-                              const reply = (e.currentTarget.elements.namedItem('reply') as HTMLTextAreaElement).value;
-                              handleReplyToContact(contact._id!, reply);
-                              e.currentTarget.reset();
-                            }} className="mt-4 space-y-4">
-                              <div>
-                                <label htmlFor={`reply-${contact._id}`} className="block text-sm font-medium text-gray-300 mb-2">
-                                  Write a Reply
-                                </label>
-                                <textarea
-                                  id={`reply-${contact._id}`}
-                                  name="reply"
-                                  className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-300"
-                                  rows={4}
-                                  required
-                                />
+                              <div className="mt-2">
+                                <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                                  contact.hasUnreplied
+                                    ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+                                    : 'bg-green-500/10 text-green-400 border-green-500/30'
+                                } border`}>
+                                  {contact.totalMessages} message{contact.totalMessages !== 1 ? 's' : ''} • {contact.hasUnreplied ? 'Has unreplied' : 'All replied'}
+                                </span>
                               </div>
-                              <Button type="submit" isLoading={submitLoading} loadingText="Sending...">
-                                Send Reply
-                              </Button>
-                            </form>
-                          )}
-
-                          <div className="mt-4 flex space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="danger"
-                              onClick={() => handleDeleteContact(contact._id!)}
-                            >
-                              Delete
-                            </Button>
+                            </div>
                           </div>
+
+                          {contact.messages.map((msg, index) => (
+                            <div key={msg._id} className="mt-4 p-4 rounded-lg border border-blue-500/10 bg-blue-500/5">
+                              <div className="flex justify-between items-start mb-2">
+                                <p className="text-sm text-gray-500">
+                                  {new Date(msg.createdAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  msg.status === 'pending'
+                                    ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+                                    : 'bg-green-500/10 text-green-400 border-green-500/30'
+                                } border`}>
+                                  {msg.status.charAt(0).toUpperCase() + msg.status.slice(1)}
+                                </span>
+                              </div>
+                              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} whitespace-pre-wrap`}>
+                                {msg.message}
+                              </p>
+
+                              {msg.reply && msg.replyDate && (
+                                <div className="mt-4 p-4 rounded-lg border border-blue-500/20 bg-blue-500/5">
+                                  <h4 className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                                    Your Reply:
+                                  </h4>
+                                  <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} whitespace-pre-wrap`}>
+                                    {msg.reply}
+                                  </p>
+                                  <p className="text-sm text-gray-500 mt-2">
+                                    Replied on: {new Date(msg.replyDate).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+                                </div>
+                              )}
+
+                              <div className="mt-4 flex gap-3">
+                                {msg.status === 'pending' && (
+                                  <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                      const el = document.getElementById(`reply-${msg._id}`) as HTMLTextAreaElement;
+                                      if (el) el.focus();
+                                    }}
+                                  >
+                                    Reply
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="danger"
+                                  onClick={() => handleDeleteContact(msg._id)}
+                                  isLoading={submitLoading}
+                                  loadingText="Deleting..."
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+
+                              {msg.status === 'pending' && (
+                                <form 
+                                  onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const form = e.target as HTMLFormElement;
+                                    const replyText = (form.elements.namedItem('reply') as HTMLTextAreaElement).value;
+                                    if (replyText.trim()) {
+                                      handleReplyToContact(msg._id, replyText.trim());
+                                      form.reset();
+                                    }
+                                  }} 
+                                  className="mt-4 space-y-4"
+                                >
+                                  <div>
+                                    <label 
+                                      htmlFor={`reply-${msg._id}`} 
+                                      className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}
+                                    >
+                                      Write a Reply
+                                    </label>
+                                    <textarea
+                                      id={`reply-${msg._id}`}
+                                      name="reply"
+                                      className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                                      rows={4}
+                                      required
+                                      placeholder="Type your reply here..."
+                                    />
+                                  </div>
+                                  <Button 
+                                    type="submit" 
+                                    isLoading={submitLoading} 
+                                    loadingText="Sending..."
+                                  >
+                                    Send Reply
+                                  </Button>
+                                </form>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </motion.div>
                     ))}
