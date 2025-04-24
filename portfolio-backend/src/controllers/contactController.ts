@@ -71,7 +71,7 @@ export const contactController = {
       const contacts = await Contact.find().sort({ createdAt: -1 });
       
       // Group contacts by email
-      const groupedContacts = contacts.reduce((groups: { [key: string]: any }, contact) => {
+      const groupedContacts = contacts.reduce((groups: any, contact) => {
         const email = contact.email;
         if (!groups[email]) {
           groups[email] = {
@@ -107,16 +107,16 @@ export const contactController = {
         if (contact.status === 'pending') {
           groups[email].hasUnreplied = true;
         }
-
+        
         return groups;
       }, {});
 
-      // Convert to array and sort by latest message date
-      const groupedContactsArray = Object.values(groupedContacts).sort((a: any, b: any) => {
-        return new Date(b.latestMessage.createdAt).getTime() - new Date(a.latestMessage.createdAt).getTime();
-      });
+      // Convert grouped object to array and sort by latest message date
+      const groupedArray = Object.values(groupedContacts).sort((a: any, b: any) => 
+        new Date(b.latestMessage.createdAt).getTime() - new Date(a.latestMessage.createdAt).getTime()
+      );
 
-      res.json(groupedContactsArray);
+      res.json(groupedArray);
     } catch (error) {
       res.status(500).json({ message: 'Error fetching contacts', error });
     }

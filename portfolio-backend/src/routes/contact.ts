@@ -4,8 +4,11 @@ import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
+// Public route for submitting contact form
 router.post('/', contactController.submitContact);
-router.get('/', contactController.getAllContacts);
+
+// Protected routes - require authentication
+router.get('/', authMiddleware, contactController.getAllContacts);
 router.post('/:id/reply', authMiddleware, contactController.replyToContact);
 router.delete('/:id', authMiddleware, contactController.deleteContact);
 

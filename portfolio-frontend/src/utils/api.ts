@@ -111,6 +111,13 @@ class ApiService {
         method: 'DELETE',
         headers: this.getHeaders()
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem('adminToken');
+        window.dispatchEvent(new CustomEvent('auth:expired'));
+        return { error: 'Authentication expired', status: 401 };
+      }
+
       return await this.handleResponse<T>(response);
     } catch (error) {
       if (error instanceof ApiError) {

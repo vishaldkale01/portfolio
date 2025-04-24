@@ -15,8 +15,10 @@ export function Experience() {
       setError(null);
       try {
         const response = await api.get<ExperienceType[]>('/experiences');
-        if (response.error) throw new Error(response.error);
-        setExperiences(response.data || []);
+        if ('error' in response) {
+          throw new Error(response.error);
+        }
+        setExperiences(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch experiences');
       } finally {
@@ -92,17 +94,19 @@ export function Experience() {
             <motion.div
               key={experience._id}
               variants={itemVariants}
-              className={`relative grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 ${
-                index % 2 === 0 ? 'md:text-right' : 'md:text-left'
-              }`}
+              className={`relative grid grid-cols-1 md:grid-cols-2 gap-8 mb-12`}
             >
               {/* Timeline dot */}
               <div className="hidden md:block absolute left-1/2 top-0 w-4 h-4 -ml-2 rounded-full bg-gradient-to-r from-primary to-secondary shadow-lg" />
 
               {/* Content */}
-              <div className={`tech-card ${index % 2 === 0 ? 'md:mr-8' : 'md:ml-8 md:col-start-2'}`}>
+              <div className={`tech-card ${
+                index % 2 === 0 
+                  ? 'md:mr-8 md:text-right' 
+                  : 'md:ml-8 md:col-start-2 md:text-left'
+              }`}>
                 <div className="relative z-10">
-                  <span className="text-sm font-mono text-primary">
+                  <span className="text-sm font-mono text-primary block">
                     {new Date(experience.startDate).toLocaleDateString()} - {
                       experience.isCurrentRole 
                         ? 'Present' 
@@ -115,10 +119,14 @@ export function Experience() {
                     {experience.role}
                   </h3>
                   <h4 className="text-lg text-gray-600 dark:text-gray-400 mb-4">{experience.company}</h4>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">{experience.description}</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 whitespace-pre-line">{experience.description}</p>
 
                   {/* Technologies */}
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className={`flex flex-wrap gap-2 mb-4 ${
+                    index % 2 === 0 
+                      ? 'md:justify-end' 
+                      : 'md:justify-start'
+                  }`}>
                     {experience.technologies.map((tech) => (
                       <span
                         key={tech}
@@ -130,9 +138,17 @@ export function Experience() {
                   </div>
 
                   {/* Responsibilities */}
-                  <ul className="space-y-2">
+                  <ul className={`space-y-2 ${
+                    index % 2 === 0 
+                      ? 'md:ml-auto' 
+                      : ''
+                  }`}>
                     {experience.responsibilities.map((responsibility, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <li key={i} className={`flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400 ${
+                        index % 2 === 0 
+                          ? 'md:flex-row-reverse' 
+                          : ''
+                      }`}>
                         <svg className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>

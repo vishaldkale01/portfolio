@@ -70,15 +70,25 @@ export interface Settings {
   };
 }
 
-export interface Contact {
+export interface ContactMessage {
   _id: string;
-  name: string;
-  email: string;
   message: string;
+  createdAt: string;
   status: 'pending' | 'replied';
   reply?: string;
-  replyDate?: Date;
-  createdAt: Date;
+  replyDate?: string;
+}
+
+export interface Contact {
+  email: string;
+  name: string;
+  messages: ContactMessage[];
+  totalMessages: number;
+  latestMessage: {
+    message: string;
+    createdAt: string;
+  };
+  hasUnreplied: boolean;
 }
 
 export interface LoginResponse {

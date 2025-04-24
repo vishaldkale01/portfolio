@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 import { Button } from './Button';
 import { api } from '../utils/api';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -33,6 +34,7 @@ interface PageSettings {
 }
 
 export function Settings() {
+  const { theme } = useTheme();
   const [settings, setSettings] = useState<PageSettings>({
     homePage: {
       title: 'Welcome to My Portfolio',
@@ -162,12 +164,12 @@ export function Settings() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-900/50 p-6 rounded-lg border border-blue-500/30"
+        className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
       >
         <h2 className="text-xl font-bold text-blue-400 mb-4">Home Page Settings</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               Title
             </label>
             <input
@@ -179,11 +181,11 @@ export function Settings() {
                   homePage: { ...settings.homePage, title: e.target.value },
                 })
               }
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               Subtitle
             </label>
             <input
@@ -195,11 +197,11 @@ export function Settings() {
                   homePage: { ...settings.homePage, subtitle: e.target.value },
                 })
               }
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               Description
             </label>
             <textarea
@@ -211,7 +213,7 @@ export function Settings() {
                 })
               }
               rows={3}
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
           <div className="flex items-center space-x-2">
@@ -226,7 +228,7 @@ export function Settings() {
               }
               className="h-4 w-4 text-blue-500 border-blue-500/30 rounded"
             />
-            <label className="text-sm font-medium text-gray-300">
+            <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Show Chat Bot
             </label>
           </div>
@@ -236,12 +238,12 @@ export function Settings() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-900/50 p-6 rounded-lg border border-blue-500/30"
+        className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
       >
         <h2 className="text-xl font-bold text-blue-400 mb-4">Contact Page Settings</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               Title
             </label>
             <input
@@ -253,11 +255,11 @@ export function Settings() {
                   contactPage: { ...settings.contactPage, title: e.target.value },
                 })
               }
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               Subtitle
             </label>
             <input
@@ -269,11 +271,11 @@ export function Settings() {
                   contactPage: { ...settings.contactPage, subtitle: e.target.value },
                 })
               }
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               Description
             </label>
             <textarea
@@ -285,11 +287,11 @@ export function Settings() {
                 })
               }
               rows={3}
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               Email
             </label>
             <input
@@ -301,11 +303,11 @@ export function Settings() {
                   contactPage: { ...settings.contactPage, email: e.target.value },
                 })
               }
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               Phone
             </label>
             <input
@@ -317,7 +319,7 @@ export function Settings() {
                   contactPage: { ...settings.contactPage, phone: e.target.value },
                 })
               }
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
         </div>
@@ -326,7 +328,7 @@ export function Settings() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-900/50 p-6 rounded-lg border border-blue-500/30"
+        className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
       >
         <h2 className="text-xl font-bold text-blue-400 mb-4">Section Visibility</h2>
         <div className="space-y-4">
@@ -342,7 +344,7 @@ export function Settings() {
               }
               className="h-4 w-4 text-blue-500 border-blue-500/30 rounded"
             />
-            <label className="text-sm font-medium text-gray-300">
+            <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Show Skills Section
             </label>
           </div>
@@ -358,7 +360,7 @@ export function Settings() {
               }
               className="h-4 w-4 text-blue-500 border-blue-500/30 rounded"
             />
-            <label className="text-sm font-medium text-gray-300">
+            <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Show Projects Section
             </label>
           </div>
@@ -374,7 +376,7 @@ export function Settings() {
               }
               className="h-4 w-4 text-blue-500 border-blue-500/30 rounded"
             />
-            <label className="text-sm font-medium text-gray-300">
+            <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Show Experiences Section
             </label>
           </div>
@@ -384,12 +386,12 @@ export function Settings() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-900/50 p-6 rounded-lg border border-blue-500/30"
+        className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
       >
         <h2 className="text-xl font-bold text-blue-400 mb-4">Social Links</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               GitHub Profile
             </label>
             <input
@@ -401,11 +403,11 @@ export function Settings() {
                   socialLinks: { ...settings.socialLinks, github: e.target.value },
                 })
               }
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               LinkedIn Profile
             </label>
             <input
@@ -417,11 +419,11 @@ export function Settings() {
                   socialLinks: { ...settings.socialLinks, linkedin: e.target.value },
                 })
               }
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
               Twitter Profile
             </label>
             <input
@@ -433,7 +435,7 @@ export function Settings() {
                   socialLinks: { ...settings.socialLinks, twitter: e.target.value },
                 })
               }
-              className="w-full p-3 bg-black/50 border border-blue-500/30 rounded-lg text-gray-300"
+              className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
             />
           </div>
         </div>
