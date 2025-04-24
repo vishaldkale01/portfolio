@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Contact as ContactType, ApiResponse } from '../types';
 import { api } from '../utils/api';
+import type { Contact, ApiResponse, ApiSuccessResponse, Settings } from '../types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Contact() {
@@ -13,10 +13,32 @@ export function Contact() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [settings, setSettings] = useState({
+    title: "Let's Connect",
+    subtitle: 'Get in Touch',
+    description: 'I am open to discussing new projects and opportunities'
+  });
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await api.get<ApiResponse<Settings>>('/settings');
+      if ('data' in response && response.data) {
+        const settingsData = response.data as unknown as Settings;
+        setSettings({
+          title: settingsData.contactPage.title || "Let's Connect",
+          subtitle: settingsData.contactPage.subtitle || 'Get in Touch',
+          description: settingsData.contactPage.description || 'I am open to discussing new projects and opportunities'
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch contact settings:', err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,8 +46,8 @@ export function Contact() {
     setError('');
     
     try {
-      const response = await api.post<ApiResponse<ContactType>>('/contact', formData);
-      if (response.data.success) {
+      const response = await api.post<ApiSuccessResponse<Contact>>('/contact', formData);
+      if ('data' in response && response.data) {
         setSuccess(true);
         setFormData({ name: '', email: '', message: '' });
       }
@@ -55,7 +77,7 @@ export function Contact() {
             animate={{ opacity: 1, y: 0 }}
             className="section-title inline-block"
           >
-            Let's Connect
+            {settings.title}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -63,7 +85,7 @@ export function Contact() {
             transition={{ delay: 0.2 }}
             className="mt-4 text-xl text-gray-600 dark:text-gray-400"
           >
-            I am open to discussing new projects and collaborations. Feel free to reach out using the form or the contact information provided.
+            {settings.description}
           </motion.p>
         </div>
 

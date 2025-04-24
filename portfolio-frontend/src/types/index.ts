@@ -43,6 +43,31 @@ export interface ChatBotState {
   loading: boolean;
 }
 
+export interface Settings {
+  _id?: string;
+  homePage: {
+    title: string;
+    subtitle: string;
+    description: string;
+    showChatBot: boolean;
+  };
+  contactPage: {
+    title: string;
+    subtitle: string;
+    description: string;
+  };
+  visibility: {
+    showSkills: boolean;
+    showProjects: boolean;
+    showExperiences: boolean;
+  };
+  socialLinks: {
+    github: string;
+    linkedin: string;
+    twitter: string;
+  };
+}
+
 export interface Contact {
   _id: string;
   name: string;
@@ -52,17 +77,6 @@ export interface Contact {
   reply?: string;
   replyDate?: Date;
   createdAt: Date;
-}
-
-export interface ContactSettings {
-  _id?: string;
-  connectWithMeTitle: string;
-  openForOpportunitiesTitle: string;
-  openForOpportunitiesText: string;
-  githubLink: string;
-  linkedinLink: string;
-  email: string;
-  phone: string;
 }
 
 export interface LoginResponse {

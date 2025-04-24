@@ -12,6 +12,7 @@ import experienceRoutes from './routes/experiences';
 import contactRoutes from './routes/contact';
 import adminRoutes from './routes/admin';
 import contactSettingsRoutes from './routes/contactSettings';
+import settingsRoutes from './routes/settings';
 import { authMiddleware } from './middleware/auth';
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use(express.json());
 
 // Public routes
 app.use('/api/admin', adminRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Protected routes
 app.use('/api/projects', projectRoutes);
