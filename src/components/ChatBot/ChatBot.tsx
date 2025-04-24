@@ -23,6 +23,7 @@ export const ChatBot: React.FC = () => {
   const [isInitialRender, setIsInitialRender] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -43,6 +44,20 @@ export const ChatBot: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    // Handle clicks outside of chat
+    const handleClickOutside = (event: MouseEvent) => {
+      if (state.isOpen && chatRef.current && !chatRef.current.contains(event.target as Node)) {
+        setState(prev => ({ ...prev, isOpen: false }));
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [state.isOpen]);
 
   const toggleChat = () => {
     setState(prev => ({ ...prev, isOpen: !prev.isOpen }));
@@ -99,7 +114,10 @@ export const ChatBot: React.FC = () => {
       )}
 
       {state.isOpen && (
-        <div className={`chat-window ${theme}`}>
+        <div 
+          ref={chatRef}
+          className={`chat-window ${theme}`}
+        >
           <div className={`chat-header ${theme}`}>
             <div className="header-content">
               <span className="bot-avatar">🤖</span>

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Experience as ExperienceType } from '../types';
-import { useAdmin } from '../context/AdminContext';
+import { api } from '../utils/api';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Experience() {
   const [experiences, setExperiences] = useState<ExperienceType[]>([]);
@@ -9,19 +11,14 @@ export function Experience() {
 
   useEffect(() => {
     const fetchExperiences = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
-        const response = await fetch('http://localhost:5000/api/experiences');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch experiences');
-        }
-        
-        const data = await response.json();
-        setExperiences(data);
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching experiences:', error);
-        setError('Failed to load experiences. Please try again later.');
+        const response = await api.get<ExperienceType[]>('/experiences');
+        if (response.error) throw new Error(response.error);
+        setExperiences(response.data || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch experiences');
       } finally {
         setIsLoading(false);
       }
@@ -30,94 +27,131 @@ export function Experience() {
     fetchExperiences();
   }, []);
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'long',
-      year: 'numeric'
-    });
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { x: -20, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+    },
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-red-500">{error}</p>
+      <div className="min-h-screen neural-bg flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <LoadingSpinner size="lg" />
+          <p className="text-primary">Loading experiences...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-8">
-        Professional Experience
-      </h1>
-
-      <div className="space-y-12">
-        {experiences.map((experience, index) => (
-          <div 
-            key={experience._id}
-            className="relative pl-8 border-l-2 border-blue-500 dark:border-blue-400"
+    <div className="min-h-screen neural-bg py-20">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="section-title inline-block"
           >
-            {/* Timeline dot */}
-            <div className="absolute left-0 transform -translate-x-1/2 w-4 h-4 bg-blue-500 dark:bg-blue-400 rounded-full" />
-            
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-              <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Professional Experience
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mt-4 text-xl text-gray-600 dark:text-gray-400"
+          >
+            My journey in Backend Development and AI/ML
+          </motion.p>
+        </div>
+
+        {/* Timeline */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="relative"
+        >
+          {/* Timeline line */}
+          <div className="absolute left-0 md:left-1/2 top-0 h-full w-px bg-gradient-to-b from-primary/50 to-secondary/50" />
+
+          {experiences.map((experience, index) => (
+            <motion.div
+              key={experience._id}
+              variants={itemVariants}
+              className={`relative grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 ${
+                index % 2 === 0 ? 'md:text-right' : 'md:text-left'
+              }`}
+            >
+              {/* Timeline dot */}
+              <div className="hidden md:block absolute left-1/2 top-0 w-4 h-4 -ml-2 rounded-full bg-gradient-to-r from-primary to-secondary shadow-lg" />
+
+              {/* Content */}
+              <div className={`tech-card ${index % 2 === 0 ? 'md:mr-8' : 'md:ml-8 md:col-start-2'}`}>
+                <div className="relative z-10">
+                  <span className="text-sm font-mono text-primary">
+                    {new Date(experience.startDate).toLocaleDateString()} - {
+                      experience.isCurrentRole 
+                        ? 'Present' 
+                        : experience.endDate 
+                          ? new Date(experience.endDate).toLocaleDateString()
+                          : ''
+                    }
+                  </span>
+                  <h3 className="text-xl font-mono font-bold mt-1 mb-2 group-hover:text-primary transition-colors">
                     {experience.role}
-                  </h2>
-                  <h3 className="text-xl text-blue-600 dark:text-blue-400">
-                    {experience.company}
                   </h3>
-                </div>
-                <div className="text-gray-600 dark:text-gray-400 mt-2 md:mt-0">
-                  {formatDate(experience.startDate)} - {experience.endDate ? formatDate(experience.endDate) : 'Present'}
-                </div>
-              </div>
+                  <h4 className="text-lg text-gray-600 dark:text-gray-400 mb-4">{experience.company}</h4>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">{experience.description}</p>
 
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                {experience.description}
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-gray-800 dark:text-white mb-2">
-                    Key Responsibilities:
-                  </h4>
-                  <ul className="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-300">
-                    {experience.responsibilities.map((responsibility, idx) => (
-                      <li key={idx}>{responsibility}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-800 dark:text-white mb-2">
-                    Technologies Used:
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {experience.technologies.map((tech, idx) => (
+                  {/* Technologies */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {experience.technologies.map((tech) => (
                       <span
-                        key={idx}
-                        className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm text-gray-600 dark:text-gray-300"
+                        key={tech}
+                        className="px-3 py-1 text-sm rounded-full bg-primary/10 text-primary"
                       >
                         {tech}
                       </span>
                     ))}
                   </div>
+
+                  {/* Responsibilities */}
+                  <ul className="space-y-2">
+                    {experience.responsibilities.map((responsibility, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <svg className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span>{responsibility}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
-            </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="fixed bottom-4 right-4 bg-red-500/10 border border-red-500/30 text-red-500 px-4 py-2 rounded-lg">
+            {error}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
