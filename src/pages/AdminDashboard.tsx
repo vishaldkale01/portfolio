@@ -59,27 +59,31 @@ export function AdminDashboard() {
 
   const [projects, setProjects] = useState<Project[]>([]);
 
-  const [newProject, setNewProject] = useState<Partial<Project>>({
+  const [newProject, setNewProject] = useState<Partial<Project> & { startDateStr?: string; endDateStr?: string }>({
     title: '',
     description: '',
     techStack: [],
     projectTypes: [],
     isCurrentProject: false,
-    startDate: new Date()
+    startDate: new Date(),
+    startDateStr: new Date().toISOString().split('T')[0],
+    endDateStr: ''
   });
-  const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
+  const [editingProject, setEditingProject] = useState<(Partial<Project> & { startDateStr?: string; endDateStr?: string }) | null>(null);
 
   const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [newExperience, setNewExperience] = useState<Partial<Experience>>({
+  const [newExperience, setNewExperience] = useState<Partial<Experience> & { startDateStr?: string; endDateStr?: string }>({
     company: '',
     role: '',
     description: '',
     startDate: new Date(),
+    startDateStr: new Date().toISOString().split('T')[0],
+    endDateStr: '',
     responsibilities: [],
     technologies: [],
     isCurrentRole: false
   });
-  const [editingExperience, setEditingExperience] = useState<Partial<Experience> | null>(null);
+  const [editingExperience, setEditingExperience] = useState<(Partial<Experience> & { startDateStr?: string; endDateStr?: string }) | null>(null);
 
   const [contacts, setContacts] = useState<Contact[]>([]);
 
@@ -248,7 +252,13 @@ export function AdminDashboard() {
     setError(null);
 
     try {
-      const response = await api.post<Project>('/projects', newProject);
+      // Convert string dates to Date objects before submitting
+      const dataToSubmit = {
+        ...newProject,
+        startDate: newProject.startDateStr ? new Date(newProject.startDateStr) : undefined,
+        endDate: newProject.endDateStr ? new Date(newProject.endDateStr) : undefined
+      };
+      const response = await api.post<Project>('/projects', dataToSubmit);
       if (isErrorResponse(response)) throw new Error(response.error);
       setNewProject({
         title: '',
@@ -256,7 +266,9 @@ export function AdminDashboard() {
         techStack: [],
         projectTypes: [],
         isCurrentProject: false,
-        startDate: new Date()
+        startDate: new Date(),
+        startDateStr: new Date().toISOString().split('T')[0],
+        endDateStr: ''
       });
       await fetchProjects();
     } catch (err) {
@@ -274,7 +286,13 @@ export function AdminDashboard() {
     setError(null);
 
     try {
-      const response = await api.put<Project>(`/projects/${editingProject._id}`, editingProject);
+      // Convert string dates to Date objects before submitting
+      const dataToSubmit = {
+        ...editingProject,
+        startDate: editingProject.startDateStr ? new Date(editingProject.startDateStr) : undefined,
+        endDate: editingProject.endDateStr ? new Date(editingProject.endDateStr) : undefined
+      };
+      const response = await api.put<Project>(`/projects/${editingProject._id}`, dataToSubmit);
       if (isErrorResponse(response)) throw new Error(response.error);
       setEditingProject(null);
       await fetchProjects();
@@ -308,13 +326,21 @@ export function AdminDashboard() {
     setError(null);
 
     try {
-      const response = await api.post<Experience>('/experiences', newExperience);
+      // Convert string dates to Date objects before submitting
+      const dataToSubmit = {
+        ...newExperience,
+        startDate: newExperience.startDateStr ? new Date(newExperience.startDateStr) : undefined,
+        endDate: newExperience.endDateStr ? new Date(newExperience.endDateStr) : undefined
+      };
+      const response = await api.post<Experience>('/experiences', dataToSubmit);
       if (isErrorResponse(response)) throw new Error(response.error);
       setNewExperience({
         company: '',
         role: '',
         description: '',
         startDate: new Date(),
+        startDateStr: new Date().toISOString().split('T')[0],
+        endDateStr: '',
         responsibilities: [],
         technologies: [],
         isCurrentRole: false
@@ -335,7 +361,13 @@ export function AdminDashboard() {
     setError(null);
 
     try {
-      const response = await api.put<Experience>(`/experiences/${editingExperience._id}`, editingExperience);
+      // Convert string dates to Date objects before submitting
+      const dataToSubmit = {
+        ...editingExperience,
+        startDate: editingExperience.startDateStr ? new Date(editingExperience.startDateStr) : undefined,
+        endDate: editingExperience.endDateStr ? new Date(editingExperience.endDateStr) : undefined
+      };
+      const response = await api.put<Experience>(`/experiences/${editingExperience._id}`, dataToSubmit);
       if (isErrorResponse(response)) throw new Error(response.error);
       setEditingExperience(null);
       await fetchExperiences();
@@ -782,12 +814,19 @@ export function AdminDashboard() {
                             </label>
                             <input
                               type="date"
-                              value={editingProject?.startDate?.toString().split('T')[0] || newProject.startDate?.toString().split('T')[0]}
-                              onChange={e => {
-                                const startDate = new Date(e.target.value);
+                              value={editingProject?.startDateStr || newProject.startDateStr || ''}
+                              onInput={e => {
+                                const input = e.target as HTMLInputElement;
+                                const value = input.value;
                                 editingProject
-                                  ? setEditingProject({...editingProject, startDate})
-                                  : setNewProject({...newProject, startDate});
+                                  ? setEditingProject({...editingProject, startDateStr: value})
+                                  : setNewProject({...newProject, startDateStr: value});
+                              }}
+                              onChange={e => {
+                                const value = e.target.value;
+                                editingProject
+                                  ? setEditingProject({...editingProject, startDate: value ? new Date(value) : undefined, startDateStr: value})
+                                  : setNewProject({...newProject, startDate: value ? new Date(value) : undefined, startDateStr: value});
                               }}
                               className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
                               required
@@ -800,14 +839,22 @@ export function AdminDashboard() {
                             </label>
                             <input
                               type="date"
-                              value={editingProject?.endDate?.toString().split('T')[0] || ''}
-                              onChange={e => {
-                                const endDate = e.target.value ? new Date(e.target.value) : undefined;
+                              value={editingProject?.endDateStr || newProject.endDateStr || ''}
+                              onInput={e => {
+                                const input = e.target as HTMLInputElement;
+                                const value = input.value;
                                 editingProject
-                                  ? setEditingProject({...editingProject, endDate})
-                                  : setNewProject({...newProject, endDate});
+                                  ? setEditingProject({...editingProject, endDateStr: value})
+                                  : setNewProject({...newProject, endDateStr: value});
+                              }}
+                              onChange={e => {
+                                const value = e.target.value;
+                                editingProject
+                                  ? setEditingProject({...editingProject, endDate: value ? new Date(value) : undefined, endDateStr: value})
+                                  : setNewProject({...newProject, endDate: value ? new Date(value) : undefined, endDateStr: value});
                               }}
                               className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                              disabled={editingProject?.isCurrentProject || newProject.isCurrentProject}
                             />
                           </div>
                         </div>
@@ -1041,12 +1088,19 @@ export function AdminDashboard() {
                             <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Start Date</label>
                             <input
                               type="date"
-                              value={editingExperience?.startDate?.toString().split('T')[0] || newExperience.startDate?.toString().split('T')[0]}
-                              onChange={e => {
-                                const startDate = new Date(e.target.value);
+                              value={editingExperience?.startDateStr || newExperience.startDateStr || ''}
+                              onInput={e => {
+                                const input = e.target as HTMLInputElement;
+                                const value = input.value;
                                 editingExperience
-                                  ? setEditingExperience({...editingExperience, startDate})
-                                  : setNewExperience({...newExperience, startDate});
+                                  ? setEditingExperience({...editingExperience, startDateStr: value})
+                                  : setNewExperience({...newExperience, startDateStr: value});
+                              }}
+                              onChange={e => {
+                                const value = e.target.value;
+                                editingExperience
+                                  ? setEditingExperience({...editingExperience, startDate: value ? new Date(value) : undefined, startDateStr: value})
+                                  : setNewExperience({...newExperience, startDate: value ? new Date(value) : undefined, startDateStr: value});
                               }}
                               className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
                               required
@@ -1057,14 +1111,22 @@ export function AdminDashboard() {
                             <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>End Date</label>
                             <input
                               type="date"
-                              value={editingExperience?.endDate?.toString().split('T')[0] || ''}
-                              onChange={e => {
-                                const endDate = e.target.value ? new Date(e.target.value) : undefined;
+                              value={editingExperience?.endDateStr || newExperience.endDateStr || ''}
+                              onInput={e => {
+                                const input = e.target as HTMLInputElement;
+                                const value = input.value;
                                 editingExperience
-                                  ? setEditingExperience({...editingExperience, endDate})
-                                  : setNewExperience({...newExperience, endDate});
+                                  ? setEditingExperience({...editingExperience, endDateStr: value})
+                                  : setNewExperience({...newExperience, endDateStr: value});
+                              }}
+                              onChange={e => {
+                                const value = e.target.value;
+                                editingExperience
+                                  ? setEditingExperience({...editingExperience, endDate: value ? new Date(value) : undefined, endDateStr: value})
+                                  : setNewExperience({...newExperience, endDate: value ? new Date(value) : undefined, endDateStr: value});
                               }}
                               className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                              disabled={editingExperience?.isCurrentRole || newExperience.isCurrentRole}
                             />
                           </div>
                         </div>
@@ -1234,7 +1296,7 @@ export function AdminDashboard() {
                             </div>
                           </div>
 
-                          {contact.messages.map((msg, index) => (
+                          {contact.messages.map((msg) => (
                             <div key={msg._id} className="mt-4 p-4 rounded-lg border border-blue-500/10 bg-blue-500/5">
                               <div className="flex justify-between items-start mb-2">
                                 <p className="text-sm text-gray-500">

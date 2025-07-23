@@ -102,11 +102,11 @@ export function Experience() {
               {/* Content */}
               <div className={`tech-card ${
                 index % 2 === 0 
-                  ? 'md:mr-8 md:text-right' 
-                  : 'md:ml-8 md:col-start-2 md:text-left'
+                  ? 'md:mr-8' 
+                  : 'md:ml-8 md:col-start-2'
               }`}>
                 <div className="relative z-10">
-                  <span className="text-sm font-mono text-primary block">
+                  <span className="text-sm font-mono text-primary block text-left">
                     {new Date(experience.startDate).toLocaleDateString()} - {
                       experience.isCurrentRole 
                         ? 'Present' 
@@ -115,18 +115,14 @@ export function Experience() {
                           : ''
                     }
                   </span>
-                  <h3 className="text-xl font-mono font-bold mt-1 mb-2 group-hover:text-primary transition-colors">
+                  <h3 className="text-xl font-mono font-bold mt-1 mb-2 group-hover:text-primary transition-colors text-left">
                     {experience.role}
                   </h3>
-                  <h4 className="text-lg text-gray-600 dark:text-gray-400 mb-4">{experience.company}</h4>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 whitespace-pre-line">{experience.description}</p>
+                  <h4 className="text-lg text-gray-600 dark:text-gray-400 mb-4 text-left">{experience.company}</h4>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 whitespace-pre-line text-left">{experience.description}</p>
 
                   {/* Technologies */}
-                  <div className={`flex flex-wrap gap-2 mb-4 ${
-                    index % 2 === 0 
-                      ? 'md:justify-end' 
-                      : 'md:justify-start'
-                  }`}>
+                  <div className="flex flex-wrap gap-2 mb-4 justify-start">
                     {experience.technologies.map((tech) => (
                       <span
                         key={tech}
@@ -138,17 +134,9 @@ export function Experience() {
                   </div>
 
                   {/* Responsibilities */}
-                  <ul className={`space-y-2 ${
-                    index % 2 === 0 
-                      ? 'md:ml-auto' 
-                      : ''
-                  }`}>
+                  <ul className="space-y-2">
                     {experience.responsibilities.map((responsibility, i) => (
-                      <li key={i} className={`flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400 ${
-                        index % 2 === 0 
-                          ? 'md:flex-row-reverse' 
-                          : ''
-                      }`}>
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <svg className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
