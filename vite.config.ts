@@ -7,9 +7,11 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://portfolio-etg0.onrender.com/',
         changeOrigin: true,
       },
     },
+    allowedHosts: ['.vercel.app', '.github.io' , '.ngrok-free.app'],
   },
-});
+}
+);
