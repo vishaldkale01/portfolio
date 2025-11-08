@@ -50,10 +50,50 @@ export function AdminDashboard() {
   const [newSkill, setNewSkill] = useState<Partial<Skill>>({
     name: '',
     category: '',
-    proficiency: 0
+    proficiency: 0,
+    isVisible: true,
+    displayOrder: 0
   });
 
   const [editingSkill, setEditingSkill] = useState<Partial<Skill> | null>(null);
+
+  const handleVisibilityToggle = async (type: 'skill' | 'project' | 'experience', id: string, isVisible: boolean) => {
+    setSubmitLoading(true);
+    setError(null);
+
+    try {
+      const endpoint = type === 'skill' ? 'skills' : type === 'project' ? 'projects' : 'experiences';
+      const response = await api.put(`/${endpoint}/${id}`, { isVisible });
+      if (isErrorResponse(response)) throw new Error(response.error);
+      
+      if (type === 'skill') await fetchData();
+      else if (type === 'project') await fetchProjects();
+      else await fetchExperiences();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Failed to update ${type} visibility`);
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleDisplayOrderChange = async (type: 'skill' | 'project' | 'experience', id: string, displayOrder: number) => {
+    setSubmitLoading(true);
+    setError(null);
+
+    try {
+      const endpoint = type === 'skill' ? 'skills' : type === 'project' ? 'projects' : 'experiences';
+      const response = await api.put(`/${endpoint}/${id}`, { displayOrder });
+      if (isErrorResponse(response)) throw new Error(response.error);
+      
+      if (type === 'skill') await fetchData();
+      else if (type === 'project') await fetchProjects();
+      else await fetchExperiences();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Failed to update ${type} display order`);
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
