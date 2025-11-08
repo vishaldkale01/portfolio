@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://portfolio-etg0.onrender.com/',
+        target: 'https://portfolio-etg0.onrender.com/api',
         changeOrigin: true,
       },
     },
