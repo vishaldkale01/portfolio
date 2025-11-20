@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    base: '/portfolio/', // keep this for GitHub pages
+    base: '', // keep this for GitHub pages
 
     server: {
       port: 5173,
