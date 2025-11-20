@@ -1,17 +1,21 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
-  plugins: [react()],
-  base: '/portfolio/', // ✅ Must match your repo name
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'https://portfolio-etg0.onrender.com',
-        changeOrigin: true,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
+    plugins: [react()],
+    base: '/portfolio/', // keep this for GitHub pages
+
+    server: {
+      port: 5173,
+      proxy: {
+        '/api': {
+          target: env.VITE_API_URL, // reads from .env files
+          changeOrigin: true,
+        },
       },
     },
-    allowedHosts: ['.vercel.app', '.github.io', '.ngrok-free.app'],
-  },
+  };
 });
