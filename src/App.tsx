@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from "react";
 import { ThemeProvider } from './context/ThemeContext';
 import { AdminProvider } from './context/AdminContext';
 import { ChatBotProvider } from './context/ChatBotContext';
@@ -11,8 +12,26 @@ import { Projects } from './pages/Projects';
 import { Contact } from './pages/Contact';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { socket } from './socket'; // ← important!
 
 function App() {
+   const [message, setMessage] = useState<string>("");
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Connected:", socket.id);
+    });
+
+    socket.on("server-message", (msg) => {
+      setMessage(msg);
+      console.log("server message" , msg)
+    });
+
+    return () => {
+      socket.off("server-message");
+    };
+  }, []);
+
   return (
     <ThemeProvider>
       <AdminProvider>
