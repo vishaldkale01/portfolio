@@ -1,11 +1,52 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAdmin } from '../context/AdminContext';
+import { api } from '../utils/api';
+import { Settings, ApiResponse, ApiErrorResponse } from '../types';
 
 export function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { isAuthenticated, logout } = useAdmin();
   const navigate = useNavigate();
+  const [showLearning, setShowLearning] = useState(true); // Default to true
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await api.get<ApiResponse<Settings>>('/settings');
+        
+        const isErrorResponse = (res: ApiResponse<any>): res is ApiErrorResponse => {
+          return 'error' in res && 'status' in res;
+        };
+
+        if (!isErrorResponse(response) && 'data' in response) {
+          const settingsData = response.data;
+          if (settingsData.visibility) {
+            setShowLearning(settingsData.visibility.showLearning ?? true);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings:', error);
+        // Default to showing learning link on error
+        setShowLearning(true);
+      }
+    };
+
+    fetchSettings();
+
+    // Listen for settings updates
+    const handleSettingsUpdate = (event: CustomEvent<Settings>) => {
+      if (event.detail.visibility) {
+        setShowLearning(event.detail.visibility.showLearning ?? true);
+      }
+    };
+
+    window.addEventListener('settings:updated', handleSettingsUpdate as EventListener);
+    return () => {
+      window.removeEventListener('settings:updated', handleSettingsUpdate as EventListener);
+    };
+  }, []);
 
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-sm bg-white/70 dark:bg-gray-800/70 shadow-lg">
@@ -31,9 +72,11 @@ export function Navbar() {
             <Link to="/contact" className="nav-link">
               Contact
             </Link>
-            <Link to="/learning" className="nav-link">
-              Learning
-            </Link>
+            {showLearning && (
+              <Link to="/learning" className="nav-link">
+                Learning
+              </Link>
+            )}
             {isAuthenticated && (
               <Link to="/admin/dashboard" className="nav-link flex items-center space-x-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
