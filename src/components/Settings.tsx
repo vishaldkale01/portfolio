@@ -25,6 +25,7 @@ interface PageSettings {
     showSkills: boolean;
     showProjects: boolean;
     showExperiences: boolean;
+    showLearning: boolean;
   };
   socialLinks: {
     github: string;
@@ -53,6 +54,7 @@ export function Settings() {
       showSkills: true,
       showProjects: true,
       showExperiences: true,
+      showLearning: true,
     },
     socialLinks: {
       github: '',
@@ -378,6 +380,22 @@ export function Settings() {
             />
             <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Show Experiences Section
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={settings.visibility.showLearning}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  visibility: { ...settings.visibility, showLearning: e.target.checked },
+                })
+              }
+              className="h-4 w-4 text-blue-500 border-blue-500/30 rounded"
+            />
+            <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Show Learning Module
             </label>
           </div>
         </div>

@@ -9,8 +9,6 @@ export interface Project {
   startDate: Date;
   endDate?: Date;
   isCurrentProject: boolean;
-  isVisible: boolean;
-  displayOrder?: number;
 }
 
 export interface Skill {
@@ -18,8 +16,6 @@ export interface Skill {
   name: string;
   category: string;
   proficiency: number;
-  isVisible: boolean;
-  displayOrder?: number;
 }
 
 export interface Experience {
@@ -32,8 +28,6 @@ export interface Experience {
   startDate: Date;
   endDate?: Date;
   isCurrentRole: boolean;
-  isVisible: boolean;
-  displayOrder?: number;
 }
 
 export interface ChatMessage {
@@ -68,6 +62,7 @@ export interface Settings {
     showSkills: boolean;
     showProjects: boolean;
     showExperiences: boolean;
+    showLearning: boolean;
   };
   socialLinks: {
     github: string;
@@ -118,10 +113,10 @@ export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 export type PartialExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
 // Form state types for better type safety in forms
-export interface SkillFormState extends Omit<Skill, '_id'> {}
-export interface ProjectFormState extends Omit<Project, '_id'> {}
-export interface ExperienceFormState extends Omit<Experience, '_id'> {}
-export interface ContactFormState extends Omit<Contact, '_id' | 'status' | 'reply' | 'replyDate' | 'createdAt'> {}
+export interface SkillFormState extends Omit<Skill, '_id'> { }
+export interface ProjectFormState extends Omit<Project, '_id'> { }
+export interface ExperienceFormState extends Omit<Experience, '_id'> { }
+export interface ContactFormState extends Omit<Contact, '_id' | 'status' | 'reply' | 'replyDate' | 'createdAt'> { }
 
 export interface ApiError {
   message: string;
