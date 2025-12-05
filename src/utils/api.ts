@@ -24,7 +24,7 @@ class ApiService {
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     const contentType = response.headers.get('content-type');
     const isJson = contentType?.includes('application/json');
-    
+
     if (!response.ok) {
       let errorMessage = 'An error occurred';
       let errorData;
@@ -61,6 +61,7 @@ class ApiService {
 
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
     try {
+      console.log("api called")
       const response = await fetch(getApiUrl(endpoint), {
         headers: this.getHeaders()
       });
