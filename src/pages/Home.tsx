@@ -13,11 +13,11 @@ export function Home() {
   const [error, setError] = useState<string | null>(null);
   const [skillsByCategory, setSkillsByCategory] = useState<{ [key: string]: Skill[] }>({});
   const [settings, setSettings] = useState({
-  homePage: {
-  title: 'Hi, I’m Vishal Kale',
-  subtitle: 'Node.js & Full Stack Developer',
-  description: 'I create real-time, scalable web applications and innovative solutions using modern technologies like Node.js, React, and MongoDB. Let’s build something amazing together!'
-},
+    homePage: {
+      title: 'Welcome to My Portfolio',
+      subtitle: 'Full Stack Developer',
+      description: 'I build modern web applications with cutting-edge technologies'
+    },
     socialLinks: {
       github: '',
       linkedin: '',

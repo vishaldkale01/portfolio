@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useEffect, useState } from "react";
 import { ThemeProvider } from './context/ThemeContext';
 import { AdminProvider } from './context/AdminContext';
 import { ChatBotProvider } from './context/ChatBotContext';
@@ -12,26 +11,12 @@ import { Projects } from './pages/Projects';
 import { Contact } from './pages/Contact';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { socket } from './socket'; // ← important!
+import Learning from './pages/Learning';
+import PlanDetail from './pages/PlanDetail';
+import TaskDetail from './pages/TaskDetail';
+import AdminLearning from './pages/AdminLearning';
 
 function App() {
-   const [message, setMessage] = useState<string>("");
-
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Connected:", socket.id);
-    });
-
-    socket.on("server-message", (msg) => {
-      setMessage(msg);
-      console.log("server message" , msg)
-    });
-
-    return () => {
-      socket.off("server-message");
-    };
-  }, []);
-
   return (
     <ThemeProvider>
       <AdminProvider>
@@ -42,7 +27,6 @@ function App() {
               <Navbar />
               <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
                 <Routes>
-                  <Route path="/portfolio" element={<Home />} />
                   <Route path="/" element={<Home />} />
                   <Route path="/experience" element={<Experience />} />
                   <Route path="/projects" element={<Projects />} />
@@ -53,6 +37,17 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <AdminDashboard />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route path="/learning" element={<Learning />} />
+                  <Route path="/learning/:id" element={<PlanDetail />} />
+                  <Route path="/task/:taskId" element={<TaskDetail />} />
+                  <Route 
+                    path="/admin/learning" 
+                    element={
+                      <ProtectedRoute>
+                        <AdminLearning />
                       </ProtectedRoute>
                     } 
                   />

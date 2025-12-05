@@ -9,8 +9,6 @@ export interface Project {
   startDate: Date;
   endDate?: Date;
   isCurrentProject: boolean;
-  isVisible: boolean;
-  displayOrder?: number;
 }
 
 export interface Skill {
@@ -18,8 +16,6 @@ export interface Skill {
   name: string;
   category: string;
   proficiency: number;
-  isVisible: boolean;
-  displayOrder?: number;
 }
 
 export interface Experience {
@@ -32,8 +28,6 @@ export interface Experience {
   startDate: Date;
   endDate?: Date;
   isCurrentRole: boolean;
-  isVisible: boolean;
-  displayOrder?: number;
 }
 
 export interface ChatMessage {

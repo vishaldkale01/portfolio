@@ -11,7 +11,12 @@ html {
     @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-mono;
   }
 
@@ -20,21 +25,24 @@ html {
   }
 
   /* Ensure all interactive elements are clickable */
-  button, a, input, textarea, select {
+  button,
+  a,
+  input,
+  textarea,
+  select {
     @apply relative z-10;
   }
 
   /* Fix input styling */
-  input, textarea, select {
-    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
-           rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 
-           focus:border-primary dark:focus:border-primary transition-all duration-200;
+  input,
+  textarea,
+  select {
+    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:focus:border-primary transition-all duration-200;
   }
 
   /* Ensure buttons are visible and interactive */
   button {
-    @apply relative z-10 cursor-pointer hover:opacity-90 transition-opacity 
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply relative z-10 cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed;
   }
 }
 
@@ -58,6 +66,7 @@ a {
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
@@ -85,9 +94,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -95,13 +106,11 @@ button:focus-visible {
 
 @layer components {
   .card {
-    @apply relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 
-           shadow-lg transition-all duration-300 hover:shadow-xl dark:shadow-gray-900/30;
+    @apply relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:shadow-gray-900/30;
   }
 
   .card::before {
-    @apply content-[''] absolute inset-0 bg-gradient-to-r from-primary to-secondary 
-           opacity-0 transition-opacity duration-300 -z-10;
+    @apply content-[''] absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 transition-opacity duration-300 -z-10;
   }
 
   .tech-card {
@@ -109,24 +118,15 @@ button:focus-visible {
   }
 
   .button-primary {
-    @apply relative z-10 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg 
-           hover:from-primary-dark hover:to-secondary-dark transition-all duration-300 
-           shadow-lg hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5
-           disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+    @apply relative z-10 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:from-primary-dark hover:to-secondary-dark transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
   }
 
   .button-secondary {
-    @apply relative z-10 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg
-           hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300
-           border border-gray-200 dark:border-gray-700
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply relative z-10 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 border border-gray-200 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .section-title {
-    @apply text-3xl md:text-4xl font-mono font-bold bg-clip-text text-transparent 
-           bg-gradient-to-r from-primary to-secondary relative 
-           after:content-[''] after:absolute after:-bottom-2 after:left-0 
-           after:w-20 after:h-1 after:bg-gradient-to-r after:from-primary after:to-secondary;
+    @apply text-3xl md:text-4xl font-mono font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary relative after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-20 after:h-1 after:bg-gradient-to-r after:from-primary after:to-secondary;
   }
 
   .neural-bg {
@@ -138,17 +138,11 @@ button:focus-visible {
   }
 
   .nav-link {
-    @apply text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white
-           relative py-2 transition-colors duration-200
-           after:absolute after:left-0 after:bottom-0 after:h-0.5 
-           after:w-0 after:bg-gradient-to-r after:from-primary after:to-secondary
-           after:transition-all after:duration-300 hover:after:w-full;
+    @apply text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white relative py-2 transition-colors duration-200 after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-primary after:to-secondary after:transition-all after:duration-300 hover:after:w-full;
   }
 
   .social-link {
-    @apply text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary
-           transition-colors duration-200 p-2 rounded-lg hover:bg-gray-100 
-           dark:hover:bg-gray-700;
+    @apply text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors duration-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700;
   }
 }
 
@@ -169,6 +163,20 @@ button:focus-visible {
   @apply bg-gray-400 dark:bg-gray-600;
 }
 
+/* Custom scrollbar for modals */
+.custom-scrollbar::-webkit-scrollbar {
+  @apply w-3;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-800/50 rounded;
+}
+
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-blue-500/30 hover:bg-blue-500/50 rounded transition-colors;
+}
+
 /* Code block styling */
 pre {
   @apply p-4 rounded-lg bg-gray-100 dark:bg-gray-800 font-code text-sm overflow-x-auto;
@@ -179,9 +187,11 @@ pre {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
