@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { learningApi, LearningPlan } from '../../utils/learningApi';
 import { motion } from 'framer-motion';
 
@@ -10,16 +10,38 @@ interface PlanFormModalProps {
 }
 
 export default function PlanFormModal({ isOpen, onClose, onSuccess, plan }: PlanFormModalProps) {
-  const [formData, setFormData] = useState({
-    title: plan?.title || '',
-    description: plan?.description || '',
-    goals: plan?.goals?.join('\n') || '',
-    status: plan?.status || 'active',
-    startDate: plan?.startDate?.split('T')[0] || '',
-    targetEndDate: plan?.targetEndDate?.split('T')[0] || '',
+  const [formData, setFormData] = useState<{
+    title: string;
+    description: string;
+    goals: string;
+    status: 'active' | 'completed' | 'paused' | 'archived';
+    startDate: string;
+    targetEndDate: string;
+  }>({
+    title: '',
+    description: '',
+    goals: '',
+    status: 'active',
+    startDate: '',
+    targetEndDate: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Update form data when plan prop changes or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        title: plan?.title || '',
+        description: plan?.description || '',
+        goals: plan?.goals?.join('\n') || '',
+        status: plan?.status || 'active',
+        startDate: plan?.startDate?.split('T')[0] || '',
+        targetEndDate: plan?.targetEndDate?.split('T')[0] || '',
+      });
+      setError(null);
+    }
+  }, [isOpen, plan]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,8 +49,12 @@ export default function PlanFormModal({ isOpen, onClose, onSuccess, plan }: Plan
     setError(null);
 
     const planData = {
-      ...formData,
+      title: formData.title,
+      description: formData.description,
       goals: formData.goals.split('\n').filter(g => g.trim()),
+      status: formData.status,
+      startDate: formData.startDate,
+      targetEndDate: formData.targetEndDate,
     };
 
     const response = plan

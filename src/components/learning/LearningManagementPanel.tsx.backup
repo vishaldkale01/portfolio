@@ -34,6 +34,7 @@ export default function LearningManagementPanel() {
     const response = await learningApi.getPlanById(planId);
     if ('data' in response && response.data) {
       setSelectedPlan(response.data);
+      // Expand all phases by default when loading a plan
       setExpandedPhases(new Set(response.data.phases.map(p => p._id)));
     }
   };
@@ -212,29 +213,6 @@ export default function LearningManagementPanel() {
                         <div key={phase._id} className="bg-gray-700/30 rounded-lg overflow-hidden shadow-md">
                           {/* Phase Header */}
                           <div 
-                            className="p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between gap-3 cursor-pointer hover:bg-gray-700/70 transition-colors"
-                            onClick={() => togglePhase(phase._id)}
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                                <span className="text-gray-400 transform transition-transform duration-200">
-                                  {isExpanded ? '▼' : '▶'}
-                                </span>
-                                <span className="text-gray-500 font-mono text-xs sm:text-sm">#{phase.order}</span>
-                                <h5 className="font-semibold text-white text-sm sm:text-base">{phase.title}</h5>
-                                <span className={`px-2 py-0.5 rounded text-xs ${getStatusColor(phase.status)}`}>
-                                  {phase.status}
-                                </span>
-                              </div>
-                              
-                              <div className="ml-0 sm:ml-8 mt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                                {phase.description && (
-                                  <p className="text-gray-400 text-xs">{phase.description}</p>
-                                )}
-                                <span className="text-xs text-blue-400 font-medium">
-                                  {completedTasks}/{phaseTasks.length} Tasks Completed
-                                </span>
-                              </div>
                             </div>
 
                             <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>

@@ -94,24 +94,24 @@ export default function PlanDetail() {
   const { phaseTasks, noPhase } = groupTasksByPhase();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white py-20 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 sm:py-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-12"
+          className="mb-8 sm:mb-12"
         >
           <button
             onClick={() => navigate('/learning')}
-            className="text-blue-400 hover:text-blue-300 mb-4 flex items-center gap-2"
+            className="text-blue-400 hover:text-blue-300 mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base"
           >
             ← Back to Learning Plans
           </button>
-          <h1 className="text-5xl font-bold mb-4">{plan.title}</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 break-words">{plan.title}</h1>
           {plan.description && (
-            <p className="text-gray-300 text-lg max-w-3xl">{plan.description}</p>
+            <p className="text-gray-300 text-base sm:text-lg max-w-3xl">{plan.description}</p>
           )}
         </motion.div>
 
@@ -119,7 +119,7 @@ export default function PlanDetail() {
         {stats && <Analytics stats={stats} />}
 
         {/* Phases and Tasks */}
-        <div className="mt-12 space-y-8">
+        <div className="mt-8 sm:mt-12 space-y-6 sm:space-y-8">
           {phases
             .sort((a, b) => a.order - b.order)
             .map((phase) => {
@@ -138,8 +138,8 @@ export default function PlanDetail() {
 
           {/* Tasks without phase */}
           {noPhase.length > 0 && (
-            <div className="bg-gray-800/50 backdrop-blur-lg border border-gray-700 rounded-xl p-6">
-              <h3 className="text-2xl font-bold mb-4">Other Tasks</h3>
+            <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 sm:p-6 shadow-lg">
+              <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Other Tasks</h3>
               <div className="space-y-3">
                 {noPhase.map((task) => (
                   <TaskItem key={task._id} task={task} isAdmin={isAdmin} />

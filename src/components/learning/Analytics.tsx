@@ -16,41 +16,52 @@ export default function Analytics({ stats }: AnalyticsProps) {
     : 0;
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-lg border border-gray-700 rounded-xl p-6 mb-8">
-      <h2 className="text-2xl font-bold mb-6">📊 Analytics & Progress</h2>
+    <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 shadow-lg">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">📊 Analytics & Progress</h2>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-blue-500/10 border border-blue-500 rounded-lg p-4">
-          <div className="text-blue-400 text-sm font-semibold mb-1">Total Time</div>
-          <div className="text-3xl font-bold">{stats.totalHours}h</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="bg-blue-500/10 rounded-lg p-3 sm:p-4 shadow-md">
+          <div className="text-blue-400 text-xs sm:text-sm font-semibold mb-1">Total Time</div>
+          <div className="text-2xl sm:text-3xl font-bold">{stats.totalHours}h</div>
         </div>
 
-        <div className="bg-green-500/10 border border-green-500 rounded-lg p-4">
-          <div className="text-green-400 text-sm font-semibold mb-1">Completed</div>
-          <div className="text-3xl font-bold">{stats.completedTasks}/{stats.totalTasks}</div>
+        <div className="bg-green-500/10 rounded-lg p-3 sm:p-4 shadow-md">
+          <div className="text-green-400 text-xs sm:text-sm font-semibold mb-1">Completed</div>
+          <div className="text-2xl sm:text-3xl font-bold">{stats.completedTasks}/{stats.totalTasks}</div>
         </div>
 
-        <div className="bg-purple-500/10 border border-purple-500 rounded-lg p-4">
-          <div className="text-purple-400 text-sm font-semibold mb-1">Progress</div>
-          <div className="text-3xl font-bold">{completionPercentage}%</div>
+        <div className="bg-purple-500/10 rounded-lg p-3 sm:p-4 shadow-md">
+          <div className="text-purple-400 text-xs sm:text-sm font-semibold mb-1">Progress</div>
+          <div className="text-2xl sm:text-3xl font-bold">{completionPercentage}%</div>
         </div>
 
-        <div className="bg-orange-500/10 border border-orange-500 rounded-lg p-4">
-          <div className="text-orange-400 text-sm font-semibold mb-1">Total Tasks</div>
-          <div className="text-3xl font-bold">{stats.totalTasks}</div>
+        <div className="bg-orange-500/10 rounded-lg p-3 sm:p-4 shadow-md">
+          <div className="text-orange-400 text-xs sm:text-sm font-semibold mb-1">Total Tasks</div>
+          <div className="text-2xl sm:text-3xl font-bold">{stats.totalTasks}</div>
         </div>
       </div>
 
       {/* Time Breakdown Chart */}
       {chartData.length > 0 && (
-        <div className="bg-gray-900/50 rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-4">Time Spent per Task</h3>
+        <div className="bg-gray-900/50 rounded-lg p-3 sm:p-4">
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Time Spent per Task</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={100} />
-              <YAxis stroke="#9CA3AF" label={{ value: 'Hours', angle: -90, position: 'insideLeft' }} />
+              <XAxis 
+                dataKey="name" 
+                stroke="#9CA3AF" 
+                angle={-45} 
+                textAnchor="end" 
+                height={100}
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis 
+                stroke="#9CA3AF" 
+                label={{ value: 'Hours', angle: -90, position: 'insideLeft' }}
+                tick={{ fontSize: 12 }}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: '#1F2937',

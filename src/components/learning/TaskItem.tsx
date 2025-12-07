@@ -38,10 +38,10 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800 border-green-300';
-      case 'in-progress': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'pending': return 'bg-gray-100 text-gray-800 border-gray-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'completed': return 'bg-green-500/20 text-green-400';
+      case 'in-progress': return 'bg-blue-500/20 text-blue-400';
+      case 'pending': return 'bg-gray-500/20 text-gray-400';
+      default: return 'bg-gray-500/20 text-gray-400';
     }
   };
 
@@ -62,14 +62,14 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="bg-gray-900/50 border border-gray-700 rounded-lg p-4 hover:border-blue-500 transition-all duration-300"
+      className="bg-gray-900/50 rounded-lg p-3 sm:p-4 shadow-md hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3">
         <div className="flex-1">
           {/*Title and Status */}
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
             <h4 
-              className="text-lg font-semibold text-white cursor-pointer hover:text-blue-400 transition-colors"
+              className="text-base sm:text-lg font-semibold text-white cursor-pointer hover:text-blue-400 transition-colors break-words order-1"
               onClick={() => navigate(`/task/${task._id}`)}
               title="Click to view details and comments"
             >
@@ -80,14 +80,14 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
                 value={task.status}
                 onChange={(e) => handleStatusChange(e.target.value)}
                 disabled={updatingStatus}
-                className={`px-2 py-1 rounded text-xs font-semibold border cursor-pointer outline-none ${getStatusColor(task.status)}`}
+                className={`px-2 py-1 rounded text-xs font-semibold cursor-pointer outline-none w-fit ${getStatusColor(task.status)} order-2`}
                >
                  <option value="pending">Pending</option>
                  <option value="in-progress">In Progress</option>
                  <option value="completed">Completed</option>
                </select>
             ) : (
-              <span className={`px-2 py-1 rounded text-xs font-semibold border ${getStatusColor(task.status)}`}>
+              <span className={`px-2 py-1 rounded text-xs font-semibold w-fit ${getStatusColor(task.status)} order-2`}>
                 {task.status}
               </span>
             )}
@@ -107,7 +107,7 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
           )}
 
           {/* Time Spent */}
-          <div className="flex items-center gap-4 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
             <span>⏱️ {formatTime(task.totalTimeSpent)}</span>
             <span>Created {new Date(task.createdAt).toLocaleDateString()}</span>
           </div>
@@ -122,7 +122,7 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
 
           {/* Edit/Delete Actions */}
           {isAdmin && (
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2">
               <button
                 onClick={() => onEdit && onEdit(task)}
                 className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors"

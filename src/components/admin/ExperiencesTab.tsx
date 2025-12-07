@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../Button';
 import { LoadingSpinner } from '../LoadingSpinner';
@@ -17,6 +17,8 @@ export function ExperiencesTab() {
     updateExperience,
     deleteExperience
   } = useExperiences();
+
+  const formRef = useRef<HTMLDivElement>(null);
 
   const [newExperience, setNewExperience] = useState<Partial<Experience> & { startDateStr?: string; endDateStr?: string }>({
     company: '',
@@ -79,6 +81,7 @@ export function ExperiencesTab() {
       ) : (
         <>
           <motion.div
+            ref={formRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
@@ -311,7 +314,12 @@ export function ExperiencesTab() {
                   <div className="mt-4 flex space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="secondary"
-                      onClick={() => setEditingExperience(experience)}
+                      onClick={() => {
+                        setEditingExperience(experience);
+                        setTimeout(() => {
+                          formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                      }}
                     >
                       Edit
                     </Button>

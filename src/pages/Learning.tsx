@@ -31,13 +31,13 @@ export default function Learning() {
     fetchPlans();
   }, []);
 
- const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-300';
-      case 'completed': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'paused': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'archived': return 'bg-gray-100 text-gray-800 border-gray-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'active': return 'bg-green-500/20 text-green-400';
+      case 'completed': return 'bg-blue-500/20 text-blue-400';
+      case 'paused': return 'bg-yellow-500/20 text-yellow-400';
+      case 'archived': return 'bg-gray-500/20 text-gray-400';
+      default: return 'bg-gray-500/20 text-gray-400';
     }
   };
 
@@ -62,19 +62,19 @@ export default function Learning() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white py-20 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 sm:py-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-12"
+          className="mb-8 sm:mb-12"
         >
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             Learning & Productivity
           </h1>
-          <p className="text-gray-300 text-lg">
+          <p className="text-gray-300 text-base sm:text-lg">
             Track my learning journey, roadmaps, and productivity metrics
           </p>
         </motion.div>
@@ -84,11 +84,11 @@ export default function Learning() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mb-8"
+            className="mb-6 sm:mb-8"
           >
             <button
               onClick={handleCreatePlan}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300"
             >
               + Create New Learning Plan
             </button>
@@ -109,11 +109,11 @@ export default function Learning() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 onClick={() => navigate(`/learning/${plan._id}`)}
-                className="bg-gray-800/50 backdrop-blur-lg border border-gray-700 rounded-xl p-6 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 cursor-pointer group"
+                className="bg-gray-800/60 backdrop-blur-lg rounded-xl p-6 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 hover:bg-gray-800/80 transition-all duration-300 cursor-pointer group"
               >
                 {/* Status Badge */}
-                <div className="flex justify-between items-start mb-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(plan.status)}`}>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(plan.status)} inline-block w-fit shadow-sm`}>
                     {plan.status.toUpperCase()}
                   </span>
                   {plan.targetEndDate && (
@@ -124,7 +124,7 @@ export default function Learning() {
                 </div>
 
                 {/* Plan Title */}
-                <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-400 transition-colors">
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 group-hover:text-blue-400 transition-colors break-words">
                   {plan.title}
                 </h3>
 
@@ -154,7 +154,7 @@ export default function Learning() {
                 )}
 
                 {/* Metadata */}
-                <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-4 border-t border-gray-700">
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-4 bg-gray-900/30 -mx-6 px-6 py-3 rounded-b-xl">
                   <span>Created {new Date(plan.createdAt).toLocaleDateString()}</span>
                   <span className="text-blue-400 group-hover:text-blue-300">View Details →</span>
                 </div>
