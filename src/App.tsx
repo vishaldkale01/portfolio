@@ -21,13 +21,12 @@ function App() {
     <ThemeProvider>
       <AdminProvider>
         <ChatBotProvider>
-          <Router>
+          <Router basename="/portfolio">
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 neural-bg">
               <div className="fixed inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none" />
               <Navbar />
-              <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+              <main className="w-full  mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
                 <Routes>
-                  <Route path="/portfolio" element={<Home />} />
                   <Route path="/" element={<Home />} />
                   <Route path="/experience" element={<Experience />} />
                   <Route path="/projects" element={<Projects />} />

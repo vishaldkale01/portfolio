@@ -39,6 +39,13 @@ export default function TaskFormModal({ isOpen, onClose, onSuccess, planId, phas
 
   const handleSubmit = async (e: React.FormEvent | null, close: boolean = true) => {
     if (e) e.preventDefault();
+    
+    // Manual validation
+    if (!formData.title.trim()) {
+      setError('Title is required');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -47,29 +54,36 @@ export default function TaskFormModal({ isOpen, onClose, onSuccess, planId, phas
       phaseId: formData.phaseId || undefined,
     };
 
-    const response = task
-      ? await learningApi.updateTask(task._id, taskData)
-      : await learningApi.createTask(taskData);
+    try {
+      const response = task
+        ? await learningApi.updateTask(task._id, taskData)
+        : await learningApi.createTask(taskData);
 
-    if ('error' in response) {
-      setError(response.error);
-      setLoading(false);
-    } else {
-      onSuccess();
-      if (close) {
-        onClose();
-      } else {
-        // Reset form for new task, keeping planId and phaseId
-        setFormData({
-          title: '',
-          description: '',
-          aim: '',
-          status: 'pending',
-          planId,
-          phaseId: formData.phaseId,
-        });
+      if ('error' in response) {
+        setError(response.error);
         setLoading(false);
+      } else {
+        onSuccess();
+        if (close) {
+          onClose();
+        } else {
+          // Reset form for new task, keeping planId and phaseId
+          setFormData({
+            title: '',
+            description: '',
+            aim: '',
+            status: 'pending',
+            planId,
+            phaseId: formData.phaseId,
+          });
+          setLoading(false);
+          // Focus title input again if possible (ref would be needed, optional improvement)
+        }
       }
+    } catch (err) {
+      console.error('Task save error:', err);
+      setError('An unexpected error occurred. Please try again.');
+      setLoading(false);
     }
   };
 
@@ -80,13 +94,13 @@ export default function TaskFormModal({ isOpen, onClose, onSuccess, planId, phas
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 max-w-xl w-full shadow-2xl"
+        className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-6 sm:p-8 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">
             {task ? 'Edit Task' : 'Add New Task'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             ✕
           </button>
         </div>
@@ -161,11 +175,11 @@ export default function TaskFormModal({ isOpen, onClose, onSuccess, planId, phas
             </select>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all"
+              className="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all shadow-md"
             >
               Cancel
             </button>
@@ -174,7 +188,7 @@ export default function TaskFormModal({ isOpen, onClose, onSuccess, planId, phas
                 type="button"
                 onClick={() => handleSubmit(null, false)}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 shadow-md shadow-blue-500/20"
               >
                 Save & Add Another
               </button>
@@ -182,9 +196,9 @@ export default function TaskFormModal({ isOpen, onClose, onSuccess, planId, phas
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 shadow-lg shadow-purple-500/20"
             >
-              {loading ? 'Saving...' : task ? 'Update' : 'Create'}
+              {loading ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
             </button>
           </div>
         </form>
