@@ -261,7 +261,7 @@ export default function LearningManagementPanel() {
                              {/* Phase Description */}
                              <div className="pl-9 pr-2">
                                 {phase.description && (
-                                  <p className="text-gray-400 text-sm leading-relaxed mb-4 max-w-4xl">{phase.description}</p>
+                                  <p className="text-gray-400 text-l leading-relaxed mb-4 max-w-4xl">{phase.description}</p>
                                 )}
                                 
                                 {/* Progress Bar */}
@@ -341,7 +341,7 @@ export default function LearningManagementPanel() {
                                 ))
                               ) : (
                                 <div className="text-center py-8 border-2 border-dashed border-gray-800 rounded-lg">
-                                    <p className="text-gray-500 text-sm mb-2">No tasks added to this phase yet.</p>
+                                    <p className="text-gray-500 text-lg mb-2">No tasks added to this phase yet.</p>
                                     <button 
                                         onClick={() => {
                                             setSelectedPhaseId(phase._id);

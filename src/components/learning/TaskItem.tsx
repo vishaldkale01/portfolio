@@ -69,58 +69,36 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
         {/* Header: Title, Status, Date */}
         <div className="flex justify-between items-start gap-3 mb-2">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-             <h4 
-              className="text-sm sm:text-base font-semibold text-gray-100 cursor-pointer hover:text-blue-400 transition-colors leading-tight truncate"
+            <h4
+              className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-100 cursor-pointer hover:text-blue-400 transition-colors leading-tight truncate"
               onClick={() => navigate(`/task/${task._id}`)}
               title="Click to view details"
             >
               {task.title}
             </h4>
-            
-            {isAdmin ? (
-               <div className="relative flex-shrink-0">
-                 <select
-                  value={task.status}
-                  onChange={(e) => handleStatusChange(e.target.value)}
-                  disabled={updatingStatus}
-                  className={`appearance-none pl-2 pr-6 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider cursor-pointer bg-transparent border ${getStatusColor(task.status)} outline-none hover:bg-white/5 transition-colors`}
-                 >
-                   <option value="pending" className="bg-gray-800 text-gray-300">Pending</option>
-                   <option value="in-progress" className="bg-gray-800 text-blue-300">In Progress</option>
-                   <option value="completed" className="bg-gray-800 text-green-300">Completed</option>
-                 </select>
-                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-current opacity-50">
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                 </div>
-               </div>
-            ) : (
-              <span className={`flex-shrink-0 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border ${getStatusColor(task.status)}`}>
-                {task.status}
-              </span>
-            )}
+
+
           </div>
-          
+
           {/* Metadata (Date) */}
           <div className="flex-shrink-0 text-[10px] sm:text-xs text-gray-500 font-medium">
-             {new Date(task.createdAt).toLocaleDateString()}
+            {new Date(task.createdAt).toLocaleDateString()}
           </div>
         </div>
 
         {/* Aim/Purpose */}
         {task.aim && (
-          <div className="mb-2">
-            <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-blue-500/5 border border-blue-500/10 text-xs text-blue-400/90 font-medium max-w-full">
-               <span className="opacity-70 uppercase tracking-wider text-[9px]">AIM:</span>
-               <span className="truncate">{task.aim}</span>
+          <div className="mb-2 rounded-full">
+            <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-blue-500/5 border border-blue-500/10 text-lg text-blue-400/90 font-medium max-w-full">
+              <span className="opacity-70 uppercase tracking-wider text-lg">AIM:</span>
+              <span className="truncate">{task.aim}</span>
             </span>
           </div>
         )}
 
         {/* Description */}
         {task.description && (
-          <p className="text-gray-400 text-sm leading-relaxed line-clamp-3 mb-2">
+          <p className="text-gray-400 text-2xl leading-relaxed line-clamp-3 mb-2">
             {task.description}
           </p>
         )}
@@ -128,41 +106,66 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
 
       {/* Bottom Section: Action Bar */}
       <div className="px-3 sm:px-4 py-2 border-t border-gray-800/50 bg-gray-900/20 flex items-center justify-between gap-4 rounded-b-lg">
-         {/* Left: Timer/Progress Info */}
-         {isAdmin && !isChecking ? (
+        {/* Left: Timer/Progress Info */}
+        {isAdmin && !isChecking ? (
+          <div className="flex items-center gap-1.5">
+            {isAdmin ? (
+              <div className="relative flex-shrink-0">
+                <select
+                  value={task.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  disabled={updatingStatus}
+                  className={`appearance-none pl-2 pr-4 py-0.10 rounded-half text-[10px] uppercase font-bold tracking-wider cursor-pointer bg-transparent border ${getStatusColor(task.status)} outline-none hover:bg-white/5 transition-colors`}
+                >
+                  <option value="pending" className="bg-gray-800 text-gray-300">Pending</option>
+                  <option value="in-progress" className="bg-gray-800 text-blue-300">In Progress</option>
+                  <option value="completed" className="bg-gray-800 text-green-300">Completed</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-current opacity-50">
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            ) : (
+              <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border ${getStatusColor(task.status)}`}>
+                {task.status}
+              </span>
+            )}
             <Timer taskId={task._id} activeTimer={activeTimer} totalTimeSpent={task.totalTimeSpent} />
-         ) : (
-            <div className="flex items-center gap-1.5 text-gray-500">
-               <svg className="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-               </svg>
-               <span className="text-xs font-mono">{formatTime(task.totalTimeSpent)}</span>
-            </div>
-         )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-gray-500">
+            <svg className="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-xs font-mono">{formatTime(task.totalTimeSpent)}</span>
+          </div>
+        )}
 
-         {/* Right: Actions */}
-         {isAdmin && (
-           <div className="flex items-center gap-1">
-              <button
-                onClick={() => onEdit && onEdit(task)}
-                className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-md transition-all"
-                title="Edit Task"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => onDelete && onDelete(task._id)}
-                className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all"
-                title="Delete Task"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-           </div>
-         )}
+        {/* Right: Actions */}
+        {isAdmin && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onEdit && onEdit(task)}
+              className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-md transition-all"
+              title="Edit Task"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => onDelete && onDelete(task._id)}
+              className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all"
+              title="Delete Task"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
     </motion.div>
   );
