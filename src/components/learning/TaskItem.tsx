@@ -103,44 +103,46 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
       {/* Bottom Section: Action Bar */}
       <div className="px-3 sm:px-4 py-2 border-t border-gray-800/50 bg-gray-900/20 flex flex-wrap items-center justify-between gap-3 rounded-b-lg">
         {/* Left: Timer/Progress Info */}
-        {isAdmin && !isChecking ? (
-          <div className="flex items-center gap-2">
-            {isAdmin ? (
-               <select
-                value={task.status}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                disabled={updatingStatus}
-                className={`px-2 py-1 rounded text-xs font-semibold cursor-pointer outline-none w-fit ${getStatusColor(task.status)} order-2`}
-               >
-                 <option value="pending">Pending</option>
-                 <option value="in-progress">In Progress</option>
-                 <option value="completed">Completed</option>
-               </select>
-            ) : (
-              <span className={`px-2 py-1 rounded text-xs font-semibold w-fit ${getStatusColor(task.status)} order-2`}>
-                {task.status}
-              </span>
-            )}
-            <Timer taskId={task._id} activeTimer={activeTimer} totalTimeSpent={task.totalTimeSpent} />
-          </div>
-
-          {/* Description */}
-          {task.description && (
-            <p className="text-gray-400 text-sm mb-2">{task.description}</p>
-          )}
-
-          {/* Aim/Purpose */}
-          {task.aim && (
-            <div className="mb-2">
-              <span className="text-xs font-semibold text-blue-400">AIM:</span>
-              <span className="text-sm text-gray-300 ml-2">{task.aim}</span>
+        {isAdmin && !isChecking && (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
+            <div className="flex items-center gap-2">
+              {isAdmin ? (
+                <select
+                  value={task.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  disabled={updatingStatus}
+                  className={`px-2 py-1 rounded text-xs font-semibold cursor-pointer outline-none w-fit ${getStatusColor(task.status)} order-2`}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+              ) : (
+                <span className={`px-2 py-1 rounded text-xs font-semibold w-fit ${getStatusColor(task.status)} order-2`}>
+                  {task.status}
+                </span>
+              )}
+              <Timer taskId={task._id} activeTimer={activeTimer} totalTimeSpent={task.totalTimeSpent} />
             </div>
-          )}
 
-          {/* Time Spent */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
-            <span>⏱️ {formatTime(task.totalTimeSpent)}</span>
-            <span>Created {new Date(task.createdAt).toLocaleDateString()}</span>
+            {/* Description */}
+            {task.description && (
+              <p className="text-gray-400 text-sm mb-2">{task.description}</p>
+            )}
+
+            {/* Aim/Purpose */}
+            {task.aim && (
+              <div className="mb-2">
+                <span className="text-xs font-semibold text-blue-400">AIM:</span>
+                <span className="text-sm text-gray-300 ml-2">{task.aim}</span>
+              </div>
+            )}
+
+            {/* Time Spent */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
+              <span>⏱️ {formatTime(task.totalTimeSpent)}</span>
+              <span>Created {new Date(task.createdAt).toLocaleDateString()}</span>
+            </div>
           </div>
         )}
 
@@ -161,7 +163,6 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
               </button>
             </div>
           )}
-        </div>
       </div>
     </motion.div>
   );

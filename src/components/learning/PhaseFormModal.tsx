@@ -57,13 +57,13 @@ export default function PhaseFormModal({ isOpen, onClose, onSuccess, planId, pha
       planId: formData.planId,
     };
 
-    const response = phase
-      ? await learningApi.updatePhase(phase._id, phaseData)
-      : await learningApi.createPhase(phaseData);
+    try {
+      const response = phase
+        ? await learningApi.updatePhase(phase._id, phaseData)
+        : await learningApi.createPhase(phaseData);
 
       if ('error' in response) {
         setError(response.error);
-        setLoading(false);
       } else {
         const phaseId = 'data' in response ? response.data?._id : phase?._id;
         onSuccess(addTasksImmediately, phaseId);
@@ -72,6 +72,7 @@ export default function PhaseFormModal({ isOpen, onClose, onSuccess, planId, pha
     } catch (err) {
       console.error('Phase save error:', err);
       setError('An unexpected error occurred. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
