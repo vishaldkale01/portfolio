@@ -10,7 +10,7 @@ export default function LearningManagementPanel() {
   const [plans, setPlans] = useState<LearningPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<PlanDetailType | null>(null);
   const [loading, setLoading] = useState(false);
-  
+
   // Modal states
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [phaseModalOpen, setPhaseModalOpen] = useState(false);
@@ -127,11 +127,10 @@ export default function LearningManagementPanel() {
                 <motion.div
                   key={plan._id}
                   whileHover={{ scale: 1.02 }}
-                  className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                    selectedPlan?.plan._id === plan._id
-                      ? 'bg-blue-500/20 border-blue-500'
-                      : 'bg-gray-700/50 border-gray-600 hover:border-gray-500'
-                  }`}
+                  className={`p-3 rounded-lg cursor-pointer transition-all border ${selectedPlan?.plan._id === plan._id
+                    ? 'bg-blue-500/20 border-blue-500'
+                    : 'bg-gray-700/50 border-gray-600 hover:border-gray-500'
+                    }`}
                   onClick={() => handlePlanSelect(plan._id)}
                 >
                   <div className="flex justify-between items-start mb-1">
@@ -159,19 +158,19 @@ export default function LearningManagementPanel() {
             <div className="space-y-6">
               {/* Plan Header */}
               <div className="flex flex-col gap-4 border-b border-gray-700/50 pb-6">
-                <div className="flex justify-between items-start gap-4">
+                <div className="mt-2">
                   <div className="flex-1 space-y-2">
-                     <div className="flex items-center gap-3">
-                        <h3 className="text-2xl font-bold text-white tracking-tight">{selectedPlan.plan.title}</h3>
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(selectedPlan.plan.status)}`}>
-                          {selectedPlan.plan.status}
-                        </span>
-                     </div>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-2xl font-bold text-white tracking-tight capitalize">{selectedPlan.plan.title}</h3>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(selectedPlan.plan.status)}`}>
+                        {selectedPlan.plan.status}
+                      </span>
+                    </div>
                     {selectedPlan.plan.description && (
-                      <p className="text-gray-400 text-sm max-w-2xl leading-relaxed">{selectedPlan.plan.description}</p>
+                      <p className="text-gray-400 text-sm leading-relaxed">{selectedPlan.plan.description}</p>
                     )}
                   </div>
-                  
+
                   {/* Plan Actions */}
                   <div className="flex items-center gap-2">
                     <button
@@ -214,15 +213,15 @@ export default function LearningManagementPanel() {
                     <span>+ Add Phase</span>
                   </button>
                 </div>
-                
+
                 {selectedPlan.phases.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-gray-700/50 rounded-xl bg-gray-800/30">
                     <p className="text-gray-500 text-sm">No phases defined for this plan.</p>
-                    <button 
-                         onClick={() => setPhaseModalOpen(true)}
-                         className="mt-2 text-purple-400 hover:text-purple-300 text-sm font-medium"
+                    <button
+                      onClick={() => setPhaseModalOpen(true)}
+                      className="mt-2 text-purple-400 hover:text-purple-300 text-sm font-medium"
                     >
-                        Create your first phase
+                      Create your first phase
                     </button>
                   </div>
                 ) : (
@@ -236,89 +235,89 @@ export default function LearningManagementPanel() {
                       return (
                         <div key={phase._id} className="bg-gray-800/40 rounded-xl overflow-hidden shadow-sm border border-gray-700/30 group">
                           {/* Phase Header Content */}
-                          <div 
+                          <div
                             className="p-4 cursor-pointer hover:bg-gray-700/30 transition-colors"
                             onClick={() => togglePhase(phase._id)}
                           >
-                             {/* Phase Title Row */}
-                             <div className="flex items-center justify-between gap-4 mb-3">
-                                <div className="flex items-center gap-3 min-w-0">
-                                   <div className={`p-1 rounded-md transition-all duration-200 ${isExpanded ? 'bg-gray-700 text-white rotate-90' : 'text-gray-500 hover:text-white'}`}>
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                      </svg>
-                                   </div>
-                                   <div className="flex items-center gap-2 min-w-0">
-                                      <span className="text-xs font-mono font-medium text-gray-500 bg-gray-800 px-1.5 py-0.5 rounded">#{phase.order}</span>
-                                      <h5 className="font-bold text-white text-base truncate">{phase.title}</h5>
-                                   </div>
+                            {/* Phase Title Row */}
+                            <div className="flex items-center justify-between gap-4 mb-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className={`p-1 rounded-md transition-all duration-200 ${isExpanded ? 'bg-gray-700 text-white rotate-90' : 'text-gray-500 hover:text-white'}`}>
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
                                 </div>
-                                <span className={`flex-shrink-0 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border ${getStatusColor(phase.status)}`}>
-                                   {phase.status}
-                                </span>
-                             </div>
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="text-xs font-mono font-medium text-gray-500 bg-gray-800 px-1.5 py-0.5 rounded">#{phase.order}</span>
+                                  <h5 className="font-bold text-white text-base truncate capitalize">{phase.title}</h5>
+                                </div>
+                              </div>
+                              <span className={`flex-shrink-0 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border ${getStatusColor(phase.status)}`}>
+                                {phase.status}
+                              </span>
+                            </div>
 
-                             {/* Phase Description */}
-                             <div className="pl-9 pr-2">
-                                {phase.description && (
-                                  <p className="text-gray-400 text-l leading-relaxed mb-4 max-w-4xl">{phase.description}</p>
-                                )}
-                                
-                                {/* Progress Bar */}
-                                <div className="flex items-center gap-3">
-                                   <div className="flex-1 h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
-                                      <div 
-                                          className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
-                                          style={{ width: `${progress}%` }}
-                                      />
-                                   </div>
-                                   <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
-                                      {completedTasks} / {phaseTasks.length} Tasks
-                                   </span>
+                            {/* Phase Description */}
+                            <div className="pl-9 pr-2">
+                              {phase.description && (
+                                <p className="text-gray-400 text-sm leading-relaxed mb-4">{phase.description}</p>
+                              )}
+
+                              {/* Progress Bar */}
+                              <div className="flex items-center gap-3">
+                                <div className="flex-1 h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
+                                    style={{ width: `${progress}%` }}
+                                  />
                                 </div>
-                             </div>
+                                <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
+                                  {completedTasks} / {phaseTasks.length} Tasks
+                                </span>
+                              </div>
+                            </div>
                           </div>
 
                           {/* Phase Bottom Actions Bar */}
                           <div className="px-4 py-2 border-t border-gray-800/50 bg-gray-900/20 flex items-center justify-between">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedPhaseId(phase._id);
-                                  setEditingTask(undefined);
-                                  setTaskModalOpen(true);
-                                }}
-                                className="flex items-center gap-1.5 text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                                Add Task
-                              </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPhaseId(phase._id);
+                                setEditingTask(undefined);
+                                setTaskModalOpen(true);
+                              }}
+                              className="flex items-center gap-1.5 text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Add Task
+                            </button>
 
-                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                   onClick={() => {
-                                     setEditingPhase(phase);
-                                     setPhaseModalOpen(true);
-                                   }}
-                                   className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-md transition-all"
-                                   title="Edit Phase"
-                                 >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                 </button>
-                                 <button
-                                   onClick={() => handleDeletePhase(phase._id)}
-                                   className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all"
-                                   title="Delete Phase"
-                                 >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                 </button>
-                              </div>
+                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                onClick={() => {
+                                  setEditingPhase(phase);
+                                  setPhaseModalOpen(true);
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-md transition-all"
+                                title="Edit Phase"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeletePhase(phase._id)}
+                                className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all"
+                                title="Delete Phase"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
 
                           {/* Tasks in Phase */}
@@ -341,16 +340,16 @@ export default function LearningManagementPanel() {
                                 ))
                               ) : (
                                 <div className="text-center py-8 border-2 border-dashed border-gray-800 rounded-lg">
-                                    <p className="text-gray-500 text-lg mb-2">No tasks added to this phase yet.</p>
-                                    <button 
-                                        onClick={() => {
-                                            setSelectedPhaseId(phase._id);
-                                            setTaskModalOpen(true);
-                                        }}
-                                        className="text-blue-400 text-xs hover:underline"
-                                    >
-                                        + Add your first task
-                                    </button>
+                                  <p className="text-gray-500 text-lg mb-2">No tasks added to this phase yet.</p>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedPhaseId(phase._id);
+                                      setTaskModalOpen(true);
+                                    }}
+                                    className="text-blue-400 text-xs hover:underline"
+                                  >
+                                    + Add your first task
+                                  </button>
                                 </div>
                               )}
                             </div>
@@ -385,7 +384,7 @@ export default function LearningManagementPanel() {
                 </div>
               )}
             </div>
-           
+
           )}
         </div>
       </div>

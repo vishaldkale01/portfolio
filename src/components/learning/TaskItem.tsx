@@ -65,32 +65,29 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
       className="group bg-gray-900/40 hover:bg-gray-800/60 rounded-lg border border-gray-800/50 hover:border-gray-700 transition-all duration-200"
     >
       {/* Top Section: Content */}
-      <div className="p-3 sm:p-4 pb-2">
+      <div className="p-4 sm:p-5 space-y-3">
         {/* Header: Title, Status, Date */}
-        <div className="flex justify-between items-start gap-3 mb-2">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex-1 min-w-0">
             <h4
-              className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-100 cursor-pointer hover:text-blue-400 transition-colors leading-tight truncate"
+              className="text-base sm:text-lg font-bold text-gray-100 cursor-pointer hover:text-blue-400 transition-colors leading-snug mb-1"
               onClick={() => navigate(`/task/${task._id}`)}
               title="Click to view details"
             >
               {task.title}
             </h4>
-
-
-          </div>
-
-          {/* Metadata (Date) */}
-          <div className="flex-shrink-0 text-[10px] sm:text-xs text-gray-500 font-medium">
-            {new Date(task.createdAt).toLocaleDateString()}
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span>{new Date(task.createdAt).toLocaleDateString()}</span>
+            </div>
           </div>
         </div>
 
         {/* Aim/Purpose */}
         {task.aim && (
-          <div className="mb-2 rounded-full">
-            <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-blue-500/5 border border-blue-500/10 text-lg text-blue-400/90 font-medium max-w-full">
-              <span className="opacity-70 uppercase tracking-wider text-lg">AIM:</span>
+          <div className="flex items-start">
+            <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-medium max-w-full">
+              <span className="opacity-70 uppercase tracking-wider font-bold text-[10px]">AIM</span>
+              <span className="w-px h-3 bg-blue-500/30"></span>
               <span className="truncate">{task.aim}</span>
             </span>
           </div>
@@ -98,7 +95,7 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
 
         {/* Description */}
         {task.description && (
-          <p className="text-gray-400 text-2xl leading-relaxed line-clamp-3 mb-2">
+          <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">
             {task.description}
           </p>
         )}

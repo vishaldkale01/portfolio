@@ -35,13 +35,13 @@ export default function PlanDetail() {
         timeApi.getPlanStats(id),
       ]);
 
-      if (planResponse.error) {
+      if ('error' in planResponse) {
         setError(planResponse.error);
-      } else if (planResponse.data) {
+      } else if ('data' in planResponse) {
         setPlanDetail(planResponse.data);
       }
 
-      if (statsResponse.data) {
+      if ('data' in statsResponse) {
         setStats(statsResponse.data);
       }
 
@@ -109,9 +109,9 @@ export default function PlanDetail() {
           >
             ← Back to Learning Plans
           </button>
-          <h1 className="text-5xl font-bold mb-4">{plan.title}</h1>
+          <h1 className="text-5xl font-bold mb-4 capitalize">{plan.title}</h1>
           {plan.description && (
-            <p className="text-gray-300 text-lg max-w-3xl">{plan.description}</p>
+            <p className="text-gray-300 text-lg leading-relaxed">{plan.description}</p>
           )}
         </motion.div>
 
@@ -125,7 +125,7 @@ export default function PlanDetail() {
             .map((phase) => {
               const phaseData = phaseTasks[phase._id];
               if (!phaseData) return null;
-              
+
               return (
                 <PhaseSection
                   key={phase._id}
