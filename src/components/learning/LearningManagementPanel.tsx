@@ -10,7 +10,7 @@ export default function LearningManagementPanel() {
   const [plans, setPlans] = useState<LearningPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<PlanDetailType | null>(null);
   const [loading, setLoading] = useState(false);
-  
+
   // Modal states
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [phaseModalOpen, setPhaseModalOpen] = useState(false);
@@ -195,18 +195,27 @@ export default function LearningManagementPanel() {
                     }}
                     className="w-full sm:w-auto px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded text-sm font-semibold transition-all"
                   >
-                    + Add Phase
+                    <span>+ Add Phase</span>
                   </button>
                 </div>
-                
+
                 {selectedPlan.phases.length === 0 ? (
-                  <div className="text-gray-500 text-sm">No phases yet</div>
+                  <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-gray-700/50 rounded-xl bg-gray-800/30">
+                    <p className="text-gray-500 text-sm">No phases defined for this plan.</p>
+                    <button
+                      onClick={() => setPhaseModalOpen(true)}
+                      className="mt-2 text-purple-400 hover:text-purple-300 text-sm font-medium"
+                    >
+                      Create your first phase
+                    </button>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {selectedPlan.phases.sort((a, b) => a.order - b.order).map((phase) => {
                       const phaseTasks = selectedPlan.tasks.filter(t => t.phaseId === phase._id);
                       const completedTasks = phaseTasks.filter(t => t.status === 'completed').length;
                       const isExpanded = expandedPhases.has(phase._id);
+                      const progress = phaseTasks.length > 0 ? Math.round((completedTasks / phaseTasks.length) * 100) : 0;
 
                       return (
                         <div key={phase._id} className="bg-gray-700/30 rounded-lg overflow-hidden shadow-md">
@@ -236,6 +245,7 @@ export default function LearningManagementPanel() {
                                 </span>
                               </div>
                             </div>
+                          </div>
 
                             <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                               <button
@@ -245,7 +255,9 @@ export default function LearningManagementPanel() {
                                 }}
                                 className="text-blue-400 hover:text-blue-300 text-xs sm:text-sm"
                               >
-                                Edit
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
                               </button>
                               <button
                                 onClick={() => handleDeletePhase(phase._id)}
@@ -300,9 +312,9 @@ export default function LearningManagementPanel() {
 
               {/* Unassigned Tasks */}
               {selectedPlan.tasks.filter(t => !t.phaseId).length > 0 && (
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">Unassigned Tasks</h4>
-                  <div className="space-y-2">
+                <div className="pt-6 border-t border-gray-700/50">
+                  <h4 className="text-lg font-semibold text-white mb-4 px-1">Unassigned Tasks</h4>
+                  <div className="space-y-3">
                     {selectedPlan.tasks.filter(t => !t.phaseId).map((task) => (
                       <TaskItem
                         key={task._id}
@@ -321,6 +333,7 @@ export default function LearningManagementPanel() {
                 </div>
               )}
             </div>
+
           )}
         </div>
       </div>

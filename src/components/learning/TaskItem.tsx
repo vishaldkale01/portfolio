@@ -71,10 +71,40 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
             <h4 
               className="text-base sm:text-lg font-semibold text-white cursor-pointer hover:text-blue-400 transition-colors break-words order-1"
               onClick={() => navigate(`/task/${task._id}`)}
-              title="Click to view details and comments"
+              title="Click to view details"
             >
               {task.title}
             </h4>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span>{new Date(task.createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Aim/Purpose */}
+        {task.aim && (
+          <div className="flex items-start">
+            <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-medium max-w-full">
+              <span className="opacity-70 uppercase tracking-wider font-bold text-[10px]">AIM</span>
+              <span className="w-px h-3 bg-blue-500/30"></span>
+              <span className="truncate">{task.aim}</span>
+            </span>
+          </div>
+        )}
+
+        {/* Description */}
+        {task.description && (
+          <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">
+            {task.description}
+          </p>
+        )}
+      </div>
+
+      {/* Bottom Section: Action Bar */}
+      <div className="px-3 sm:px-4 py-2 border-t border-gray-800/50 bg-gray-900/20 flex flex-wrap items-center justify-between gap-3 rounded-b-lg">
+        {/* Left: Timer/Progress Info */}
+        {isAdmin && !isChecking ? (
+          <div className="flex items-center gap-2">
             {isAdmin ? (
                <select
                 value={task.status}
@@ -91,6 +121,7 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
                 {task.status}
               </span>
             )}
+            <Timer taskId={task._id} activeTimer={activeTimer} totalTimeSpent={task.totalTimeSpent} />
           </div>
 
           {/* Description */}
@@ -111,14 +142,7 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
             <span>⏱️ {formatTime(task.totalTimeSpent)}</span>
             <span>Created {new Date(task.createdAt).toLocaleDateString()}</span>
           </div>
-        </div>
-
-        {/* Actions & Timer */}
-        <div className="flex flex-col items-end gap-2">
-           {/* Timer Component (Admin Only) */}
-           {isAdmin && !isChecking && (
-            <Timer taskId={task._id} activeTimer={activeTimer} totalTimeSpent={task.totalTimeSpent} />
-          )}
+        )}
 
           {/* Edit/Delete Actions */}
           {isAdmin && (

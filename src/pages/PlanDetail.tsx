@@ -35,13 +35,13 @@ export default function PlanDetail() {
         timeApi.getPlanStats(id),
       ]);
 
-      if (planResponse.error) {
+      if ('error' in planResponse) {
         setError(planResponse.error);
-      } else if (planResponse.data) {
+      } else if ('data' in planResponse) {
         setPlanDetail(planResponse.data);
       }
 
-      if (statsResponse.data) {
+      if ('data' in statsResponse) {
         setStats(statsResponse.data);
       }
 
@@ -125,7 +125,7 @@ export default function PlanDetail() {
             .map((phase) => {
               const phaseData = phaseTasks[phase._id];
               if (!phaseData) return null;
-              
+
               return (
                 <PhaseSection
                   key={phase._id}

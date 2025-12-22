@@ -51,9 +51,9 @@ export default function PhaseSection({ phase, tasks, isAdmin }: PhaseSectionProp
             {completed}/{total} tasks completed
           </span>
         </div>
-        
+
         {phase.description && (
-          <p className="text-gray-400 text-sm mb-4">{phase.description}</p>
+          <p className="text-gray-400 text-sm mb-4 text-justify leading-relaxed">{phase.description}</p>
         )}
 
         {/* Progress Bar */}

@@ -61,7 +61,6 @@ class ApiService {
 
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
     try {
-      console.log("api called")
       const response = await fetch(getApiUrl(endpoint), {
         headers: this.getHeaders()
       });

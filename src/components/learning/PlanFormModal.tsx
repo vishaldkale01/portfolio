@@ -57,16 +57,22 @@ export default function PlanFormModal({ isOpen, onClose, onSuccess, plan }: Plan
       targetEndDate: formData.targetEndDate,
     };
 
-    const response = plan
-      ? await learningApi.updatePlan(plan._id, planData)
-      : await learningApi.createPlan(planData);
+    try {
+      const response = plan
+        ? await learningApi.updatePlan(plan._id, planData)
+        : await learningApi.createPlan(planData);
 
-    if ('error' in response) {
-      setError(response.error);
+      if ('error' in response) {
+        setError(response.error);
+        setLoading(false);
+      } else {
+        onSuccess();
+        onClose();
+      }
+    } catch (err) {
+      console.error('Plan save error:', err);
+      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
-    } else {
-      onSuccess();
-      onClose();
     }
   };
 
@@ -78,10 +84,10 @@ export default function PlanFormModal({ isOpen, onClose, onSuccess, plan }: Plan
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             {plan ? 'Edit Learning Plan' : 'Create New Learning Plan'}
           </h2>
           <button
@@ -162,7 +168,7 @@ export default function PlanFormModal({ isOpen, onClose, onSuccess, plan }: Plan
           </div>
 
           {/* Dates */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">
                 Start Date
@@ -188,18 +194,18 @@ export default function PlanFormModal({ isOpen, onClose, onSuccess, plan }: Plan
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all"
+              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all shadow-md"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
             >
               {loading ? 'Saving...' : plan ? 'Update Plan' : 'Create Plan'}
             </button>

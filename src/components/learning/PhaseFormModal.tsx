@@ -61,13 +61,18 @@ export default function PhaseFormModal({ isOpen, onClose, onSuccess, planId, pha
       ? await learningApi.updatePhase(phase._id, phaseData)
       : await learningApi.createPhase(phaseData);
 
-    if ('error' in response) {
-      setError(response.error);
+      if ('error' in response) {
+        setError(response.error);
+        setLoading(false);
+      } else {
+        const phaseId = 'data' in response ? response.data?._id : phase?._id;
+        onSuccess(addTasksImmediately, phaseId);
+        onClose();
+      }
+    } catch (err) {
+      console.error('Phase save error:', err);
+      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
-    } else {
-      const phaseId = 'data' in response ? response.data?._id : phase?._id;
-      onSuccess(addTasksImmediately, phaseId);
-      onClose();
     }
   };
 
@@ -78,13 +83,13 @@ export default function PhaseFormModal({ isOpen, onClose, onSuccess, planId, pha
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 max-w-xl w-full shadow-2xl"
+        className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-6 sm:p-8 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">
             {phase ? 'Edit Phase' : 'Add New Phase'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             ✕
           </button>
         </div>
@@ -160,20 +165,20 @@ export default function PhaseFormModal({ isOpen, onClose, onSuccess, planId, pha
             </div>
           )}
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all"
+              className="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all shadow-md"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 shadow-lg shadow-purple-500/20"
             >
-              {loading ? 'Saving...' : phase ? 'Update' : 'Create'}
+              {loading ? 'Saving...' : phase ? 'Update Phase' : 'Create Phase'}
             </button>
           </div>
         </form>
