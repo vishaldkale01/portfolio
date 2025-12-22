@@ -9,21 +9,12 @@ interface PhaseSectionProps {
 }
 
 export default function PhaseSection({ phase, tasks, isAdmin }: PhaseSectionProps) {
-  const getPhaseStatusGradient = (status: string) => {
+  const getPhaseStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'from-green-500/10 to-transparent';
-      case 'in-progress': return 'from-blue-500/10 to-transparent';
-      case 'not-started': return 'from-gray-500/10 to-transparent';
-      default: return 'from-gray-500/10 to-transparent';
-    }
-  };
-
-  const getPhaseShadow = (status: string) => {
-    switch (status) {
-      case 'completed': return 'shadow-lg shadow-green-500/10';
-      case 'in-progress': return 'shadow-lg shadow-blue-500/10';
-      case 'not-started': return 'shadow-lg shadow-gray-500/10';
-      default: return 'shadow-lg shadow-gray-500/10';
+      case 'completed': return 'border-green-500 bg-green-500/10';
+      case 'in-progress': return 'border-blue-500 bg-blue-500/10';
+      case 'not-started': return 'border-gray-500 bg-gray-500/10';
+      default: return 'border-gray-500 bg-gray-500/10';
     }
   };
 
@@ -35,19 +26,16 @@ export default function PhaseSection({ phase, tasks, isAdmin }: PhaseSectionProp
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative bg-gray-800/60 backdrop-blur-lg rounded-xl p-4 sm:p-6 ${getPhaseShadow(phase.status)} overflow-hidden`}
+      className={`border-l-4 ${getPhaseStatusColor(phase.status)} bg-gray-800/50 backdrop-blur-lg rounded-xl p-6`}
     >
-      {/* Colored gradient accent (replaces left border) */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${getPhaseStatusGradient(phase.status)}`} />
-      
       {/* Phase Header */}
-      <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-          <h3 className="text-xl sm:text-2xl font-bold break-words">
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-2xl font-bold">
             <span className="text-gray-500 mr-2">#{phase.order}</span>
             {phase.title}
           </h3>
-          <span className="text-xs sm:text-sm text-gray-400 whitespace-nowrap">
+          <span className="text-sm text-gray-400">
             {completed}/{total} tasks completed
           </span>
         </div>
@@ -57,7 +45,7 @@ export default function PhaseSection({ phase, tasks, isAdmin }: PhaseSectionProp
         )}
 
         {/* Progress Bar */}
-        <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
@@ -70,7 +58,7 @@ export default function PhaseSection({ phase, tasks, isAdmin }: PhaseSectionProp
       {/* Tasks */}
       <div className="space-y-3">
         {tasks.map((task) => (
-          <TaskItem key={task._id} task={task} isAdmin={isAdmin} />
+          <TaskItem key={task._id} task={task} isAdmin={isAdmin} allTasks={tasks} />
         ))}
       </div>
     </motion.div>
