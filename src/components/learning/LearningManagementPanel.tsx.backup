@@ -10,7 +10,7 @@ export default function LearningManagementPanel() {
   const [plans, setPlans] = useState<LearningPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<PlanDetailType | null>(null);
   const [loading, setLoading] = useState(false);
-
+  
   // Modal states
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [phaseModalOpen, setPhaseModalOpen] = useState(false);
@@ -34,6 +34,7 @@ export default function LearningManagementPanel() {
     const response = await learningApi.getPlanById(planId);
     if ('data' in response && response.data) {
       setSelectedPlan(response.data);
+      // Expand all phases by default when loading a plan
       setExpandedPhases(new Set(response.data.phases.map(p => p._id)));
     }
   };
@@ -195,57 +196,24 @@ export default function LearningManagementPanel() {
                     }}
                     className="w-full sm:w-auto px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded text-sm font-semibold transition-all"
                   >
-                    <span>+ Add Phase</span>
+                    + Add Phase
                   </button>
                 </div>
-
+                
                 {selectedPlan.phases.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-gray-700/50 rounded-xl bg-gray-800/30">
-                    <p className="text-gray-500 text-sm">No phases defined for this plan.</p>
-                    <button
-                      onClick={() => setPhaseModalOpen(true)}
-                      className="mt-2 text-purple-400 hover:text-purple-300 text-sm font-medium"
-                    >
-                      Create your first phase
-                    </button>
-                  </div>
+                  <div className="text-gray-500 text-sm">No phases yet</div>
                 ) : (
                   <div className="space-y-3">
                     {selectedPlan.phases.sort((a, b) => a.order - b.order).map((phase) => {
                       const phaseTasks = selectedPlan.tasks.filter(t => t.phaseId === phase._id);
                       const completedTasks = phaseTasks.filter(t => t.status === 'completed').length;
                       const isExpanded = expandedPhases.has(phase._id);
-                      const progress = phaseTasks.length > 0 ? Math.round((completedTasks / phaseTasks.length) * 100) : 0;
 
                       return (
                         <div key={phase._id} className="bg-gray-700/30 rounded-lg overflow-hidden shadow-md">
                           {/* Phase Header */}
                           <div 
-                            className="p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between gap-3 cursor-pointer hover:bg-gray-700/70 transition-colors"
-                            onClick={() => togglePhase(phase._id)}
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                                <span className="text-gray-400 transform transition-transform duration-200">
-                                  {isExpanded ? '▼' : '▶'}
-                                </span>
-                                <span className="text-gray-500 font-mono text-xs sm:text-sm">#{phase.order}</span>
-                                <h5 className="font-semibold text-white text-sm sm:text-base">{phase.title}</h5>
-                                <span className={`px-2 py-0.5 rounded text-xs ${getStatusColor(phase.status)}`}>
-                                  {phase.status}
-                                </span>
-                              </div>
-                              
-                              <div className="ml-0 sm:ml-8 mt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                                {phase.description && (
-                                  <p className="text-gray-400 text-xs">{phase.description}</p>
-                                )}
-                                <span className="text-xs text-blue-400 font-medium">
-                                  {completedTasks}/{phaseTasks.length} Tasks Completed
-                                </span>
-                              </div>
                             </div>
-                          </div>
 
                             <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                               <button
@@ -255,9 +223,7 @@ export default function LearningManagementPanel() {
                                 }}
                                 className="text-blue-400 hover:text-blue-300 text-xs sm:text-sm"
                               >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
+                                Edit
                               </button>
                               <button
                                 onClick={() => handleDeletePhase(phase._id)}
@@ -312,9 +278,9 @@ export default function LearningManagementPanel() {
 
               {/* Unassigned Tasks */}
               {selectedPlan.tasks.filter(t => !t.phaseId).length > 0 && (
-                <div className="pt-6 border-t border-gray-700/50">
-                  <h4 className="text-lg font-semibold text-white mb-4 px-1">Unassigned Tasks</h4>
-                  <div className="space-y-3">
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-3">Unassigned Tasks</h4>
+                  <div className="space-y-2">
                     {selectedPlan.tasks.filter(t => !t.phaseId).map((task) => (
                       <TaskItem
                         key={task._id}
@@ -333,7 +299,6 @@ export default function LearningManagementPanel() {
                 </div>
               )}
             </div>
-
           )}
         </div>
       </div>

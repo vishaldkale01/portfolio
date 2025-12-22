@@ -5,6 +5,7 @@ import { Button } from './Button';
 import { api } from '../utils/api';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ApiResponse } from '../types';
+import { AdminSettings } from './AdminSettings';
 
 interface PageSettings {
   _id?: string;
@@ -457,6 +458,15 @@ export function Settings() {
             />
           </div>
         </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
+      >
+        <h2 className="text-xl font-bold text-blue-400 mb-4">Admin Settings</h2>
+        <AdminSettings />
       </motion.div>
 
       <div className="flex justify-end">

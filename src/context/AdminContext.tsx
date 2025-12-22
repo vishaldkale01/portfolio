@@ -6,6 +6,9 @@ interface AdminContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  sendOTP: (email: string) => Promise<void>;
+  verifyOTP: (email: string, otp: string) => Promise<void>;
+  checkLoginType: (email: string) => Promise<'password' | 'otp'>;
   logout: () => void;
   checkAuth: () => Promise<void>;
 }
@@ -30,7 +33,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const response = await api.get<{ valid: boolean }>('/admin/verify');
-      if (response.error) throw new Error(response.error);
+      if ('error' in response) throw new Error(response.error);
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Token verification failed:', error);
@@ -48,8 +51,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     const refreshToken = async () => {
       try {
         const response = await api.post<LoginResponse>('/admin/refresh-token', {});
-        if (response.error) throw new Error(response.error);
-        if (!response.data?.token) throw new Error('No token received');
+        if ('error' in response) throw new Error(response.error);
+        if (!('data' in response) || !response.data?.token) throw new Error('No token received');
         
         localStorage.setItem('adminToken', response.data.token);
       } catch (error) {
@@ -82,13 +85,49 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const response = await api.post<LoginResponse>('/admin/login', { email, password });
-      if (response.error) throw new Error(response.error);
-      if (!response.data?.token) throw new Error('No token received');
+      if ('error' in response) throw new Error(response.error);
+      if (!('data' in response) || !response.data?.token) throw new Error('No token received');
       
       localStorage.setItem('adminToken', response.data.token);
       setIsAuthenticated(true);
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Login failed');
+    }
+  };
+
+  const sendOTP = async (email: string) => {
+    try {
+      const response = await api.post<{ message: string }>('/admin/send-otp', { email });
+      if ('error' in response) throw new Error(response.error);
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'Failed to send OTP');
+    }
+  };
+
+  const verifyOTP = async (email: string, otp: string) => {
+    try {
+      const response = await api.post<LoginResponse>('/admin/verify-otp', { email, otp });
+      if ('error' in response) throw new Error(response.error);
+      if (!('data' in response) || !response.data?.token) throw new Error('No token received');
+      
+      localStorage.setItem('adminToken', response.data.token);
+      setIsAuthenticated(true);
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'OTP verification failed');
+    }
+  };
+
+  const checkLoginType = async (email: string): Promise<'password' | 'otp'> => {
+    try {
+      const response = await api.post<{ loginType: 'password' | 'otp' }>('/admin/check-login-type', { email });
+      if ('error' in response) throw new Error(response.error);
+      if ('data' in response && response.data) {
+        return response.data.loginType;
+      }
+      return 'password';
+    } catch (error) {
+      // Default to password if check fails (e.g. user not found)
+      return 'password';
     }
   };
 
@@ -98,7 +137,16 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AdminContext.Provider value={{ isAuthenticated, isLoading, login, logout, checkAuth }}>
+    <AdminContext.Provider value={{ 
+      isAuthenticated, 
+      isLoading, 
+      login, 
+      sendOTP, 
+      verifyOTP, 
+      checkLoginType,
+      logout, 
+      checkAuth 
+    }}>
       {children}
     </AdminContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../Button';
 import { useTheme } from '../../context/ThemeContext';
@@ -13,8 +13,18 @@ export function ProjectTypesTab() {
     deleteProjectType
   } = useProjectTypes();
 
+  const editCardRef = useRef<HTMLDivElement>(null);
+
   const [newProjectType, setNewProjectType] = useState('');
   const [editingProjectType, setEditingProjectType] = useState<{ oldType: ProjectType; newType: string } | null>(null);
+
+  useEffect(() => {
+    if (editingProjectType && editCardRef.current) {
+      setTimeout(() => {
+        editCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [editingProjectType]);
 
   const handleAddProjectType = () => {
     if (addProjectType(newProjectType)) {
@@ -60,6 +70,7 @@ export function ProjectTypesTab() {
         {projectTypes.map((type) => (
           <div
             key={type}
+            ref={editingProjectType?.oldType === type ? editCardRef : null}
             className={`relative group ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-4 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300`}
           >
             {editingProjectType?.oldType === type ? (

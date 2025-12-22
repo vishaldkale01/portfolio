@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { learningApi, Phase } from '../../utils/learningApi';
 import { motion } from 'framer-motion';
 
@@ -12,26 +12,54 @@ interface PhaseFormModalProps {
 }
 
 export default function PhaseFormModal({ isOpen, onClose, onSuccess, planId, phase, maxOrder }: PhaseFormModalProps) {
-  const [formData, setFormData] = useState({
-    title: phase?.title || '',
-    description: phase?.description || '',
-    order: phase?.order || maxOrder + 1,
-    status: phase?.status || 'not-started',
+  const [formData, setFormData] = useState<{
+    title: string;
+    description: string;
+    order: number;
+    status: 'not-started' | 'in-progress' | 'completed';
+    planId: string;
+  }>({
+    title: '',
+    description: '',
+    order: maxOrder + 1,
+    status: 'not-started',
     planId,
   });
   const [addTasksImmediately, setAddTasksImmediately] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Update form data when phase prop changes or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        title: phase?.title || '',
+        description: phase?.description || '',
+        order: phase?.order || maxOrder + 1,
+        status: phase?.status || 'not-started',
+        planId,
+      });
+      setAddTasksImmediately(false);
+      setError(null);
+    }
+  }, [isOpen, phase, planId, maxOrder]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    try {
-      const response = phase
-        ? await learningApi.updatePhase(phase._id, phaseData)
-        : await learningApi.createPhase(phaseData);
+    const phaseData = {
+      title: formData.title,
+      description: formData.description,
+      order: formData.order,
+      status: formData.status,
+      planId: formData.planId,
+    };
+
+    const response = phase
+      ? await learningApi.updatePhase(phase._id, phaseData)
+      : await learningApi.createPhase(phaseData);
 
       if ('error' in response) {
         setError(response.error);

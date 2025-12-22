@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../Button';
 import { useTheme } from '../../context/ThemeContext';
@@ -16,6 +16,8 @@ export function SkillsTab() {
     deleteSkill,
     addCategory
   } = useSkills();
+
+  const formRef = useRef<HTMLDivElement>(null);
 
   const [newSkill, setNewSkill] = useState<Partial<Skill>>({
     name: '',
@@ -59,6 +61,7 @@ export function SkillsTab() {
     <div className="space-y-8">
       {/* Add/Edit Skill Form */}
       <motion.div
+        ref={formRef}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-6 rounded-lg border border-blue-500/30`}
@@ -211,7 +214,12 @@ export function SkillsTab() {
               <div className="mt-6 flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="secondary"
-                  onClick={() => setEditingSkill(skill)}
+                  onClick={() => {
+                    setEditingSkill(skill);
+                    setTimeout(() => {
+                      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                  }}
                 >
                   Edit
                 </Button>
