@@ -245,7 +245,6 @@ export default function LearningManagementPanel() {
                                 </span>
                               </div>
                             </div>
-                          </div>
 
                             <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                               <button
@@ -278,7 +277,7 @@ export default function LearningManagementPanel() {
                             </div>
                           </div>
 
-                          {/* Tasks in Phase */}
+                        
                           {isExpanded && phaseTasks.length > 0 && (
                             <div className="bg-gray-800/50 p-4 space-y-2">
                               {phaseTasks.map((task) => (
