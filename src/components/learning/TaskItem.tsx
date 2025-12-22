@@ -102,17 +102,17 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
       </div>
 
       {/* Bottom Section: Action Bar */}
-      <div className="px-3 sm:px-4 py-2 border-t border-gray-800/50 bg-gray-900/20 flex items-center justify-between gap-4 rounded-b-lg">
+      <div className="px-3 sm:px-4 py-2 border-t border-gray-800/50 bg-gray-900/20 flex flex-wrap items-center justify-between gap-3 rounded-b-lg">
         {/* Left: Timer/Progress Info */}
         {isAdmin && !isChecking ? (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {isAdmin ? (
               <div className="relative flex-shrink-0">
                 <select
                   value={task.status}
                   onChange={(e) => handleStatusChange(e.target.value)}
                   disabled={updatingStatus}
-                  className={`appearance-none pl-2 pr-4 py-0.10 rounded-half text-[10px] uppercase font-bold tracking-wider cursor-pointer bg-transparent border ${getStatusColor(task.status)} outline-none hover:bg-white/5 transition-colors`}
+                  className={`appearance-none pl-2 pr-4 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider cursor-pointer bg-transparent border ${getStatusColor(task.status)} outline-none hover:bg-white/5 transition-colors`}
                 >
                   <option value="pending" className="bg-gray-800 text-gray-300">Pending</option>
                   <option value="in-progress" className="bg-gray-800 text-blue-300">In Progress</option>
@@ -142,7 +142,7 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
 
         {/* Right: Actions */}
         {isAdmin && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 ml-auto">
             <button
               onClick={() => onEdit && onEdit(task)}
               className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-md transition-all"
