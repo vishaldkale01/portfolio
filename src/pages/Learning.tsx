@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { learningApi, LearningPlan } from '../utils/learningApi';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Learning() {
+  const { theme } = useTheme();
   const [plans, setPlans] = useState<LearningPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -11,154 +13,115 @@ export default function Learning() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if admin
-    const token = localStorage.getItem('adminToken');
-    setIsAdmin(!!token);
+    setIsAdmin(!!localStorage.getItem('adminToken'));
 
-    // Fetch all plans
     const fetchPlans = async () => {
       setLoading(true);
       const response = await learningApi.getAllPlans();
-      
-      if (response.error) {
-        setError(response.error);
-      } else if (response.data) {
-        setPlans(response.data);
-      }
+      if (response.error) setError(response.error);
+      else if (response.data) setPlans(response.data);
       setLoading(false);
     };
 
     fetchPlans();
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-500/20 text-green-400';
-      case 'completed': return 'bg-blue-500/20 text-blue-400';
-      case 'paused': return 'bg-yellow-500/20 text-yellow-400';
-      case 'archived': return 'bg-gray-500/20 text-gray-400';
-      default: return 'bg-gray-500/20 text-gray-400';
-    }
-  };
-
-  const handleCreatePlan = () => {
-    navigate('/admin');
+  const getStatusClass = (status: LearningPlan['status']) => {
+    if (status === 'active') return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+    if (status === 'completed') return 'bg-blue-500/15 text-blue-300 border-blue-500/30';
+    if (status === 'paused') return 'bg-amber-500/15 text-amber-300 border-amber-500/30';
+    return 'bg-gray-500/15 text-gray-300 border-gray-500/30';
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-xl">Loading learning plans...</div>
+      <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-[#0f1529]' : 'bg-gray-100'}`}>
+        <div className={`text-xl ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Loading learning plans...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-[#0f1529]' : 'bg-gray-100'}`}>
         <div className="text-red-400 text-xl">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 sm:py-20 px-4 sm:px-6">
+    <div className={`min-h-screen py-10 px-4 sm:px-6 ${theme === 'dark' ? 'bg-[#0f1529] text-white' : 'bg-gray-100 text-gray-900'}`}>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8 sm:mb-12"
-        >
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
             Learning & Productivity
           </h1>
-          <p className="text-gray-300 text-base sm:text-lg">
-            Track my learning journey, roadmaps, and productivity metrics
-          </p>
+          <p className={`text-lg mt-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Track my learning journey, roadmaps, and productivity metrics</p>
         </motion.div>
 
-        {/* Create Plan Button (Admin Only) */}
         {isAdmin && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mb-6 sm:mb-8"
-          >
+          <div className="mb-7">
             <button
-              onClick={handleCreatePlan}
-              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300"
+              onClick={() => navigate('/admin')}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold border border-blue-400/20"
             >
               + Create New Learning Plan
             </button>
-          </motion.div>
+          </div>
         )}
 
-        {/* Plans Grid */}
         {plans.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-400 text-xl">No learning plans yet. Stay tuned!</p>
-          </div>
+          <div className="text-center py-20 text-gray-400 text-xl">No learning plans yet. Stay tuned!</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {plans.map((plan, index) => (
-              <motion.div
+              <motion.button
                 key={plan._id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                transition={{ delay: index * 0.06 }}
                 onClick={() => navigate(`/learning/${plan._id}`)}
-                className="bg-gray-800/60 backdrop-blur-lg rounded-xl p-6 shadow-lg hover:shadow-xl hover:shadow-blue-500/30 hover:bg-gray-800/80 transition-all duration-300 cursor-pointer group"
+                className={`text-left border rounded-xl overflow-hidden transition-colors ${
+                  theme === 'dark'
+                    ? 'border-gray-800 bg-[#1a2438] hover:bg-[#1d2940]'
+                    : 'border-gray-300 bg-white hover:bg-gray-50'
+                }`}
               >
-                {/* Status Badge */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(plan.status)} inline-block w-fit shadow-sm`}>
-                    {plan.status.toUpperCase()}
-                  </span>
-                  {plan.targetEndDate && (
-                    <span className="text-xs text-gray-400">
-                      Target: {new Date(plan.targetEndDate).toLocaleDateString()}
+                <div className="p-6">
+                  <div className="flex items-start justify-between gap-2 mb-4">
+                    <span className={`px-3 py-1 text-xs uppercase rounded-full border ${getStatusClass(plan.status)}`}>
+                      {plan.status}
                     </span>
+                    {plan.targetEndDate && (
+                      <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Target: {new Date(plan.targetEndDate).toLocaleDateString()}</span>
+                    )}
+                  </div>
+
+                  <h3 className={`text-3xl font-mono font-bold leading-tight mb-3 line-clamp-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>{plan.title}</h3>
+
+                  {plan.description && <p className={`text-sm leading-7 line-clamp-3 mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{plan.description}</p>}
+
+                  {plan.goals && plan.goals.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Goals</p>
+                      <ul className="space-y-1.5">
+                        {plan.goals.slice(0, 3).map((goal, i) => (
+                          <li key={i} className={`text-sm flex items-start ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                            <span className="text-blue-400 mr-2">•</span>
+                            <span className="line-clamp-1">{goal}</span>
+                          </li>
+                        ))}
+                        {plan.goals.length > 3 && <li className="text-xs text-gray-500">+{plan.goals.length - 3} more</li>}
+                      </ul>
+                    </div>
                   )}
                 </div>
 
-                {/* Plan Title */}
-                <h3 className="text-xl sm:text-2xl font-bold mb-3 group-hover:text-blue-400 transition-colors break-words">
-                  {plan.title}
-                </h3>
-
-                {/* Description */}
-                {plan.description && (
-                  <p className="text-gray-400 text-sm mb-4 line-clamp-3">
-                    {plan.description}
-                  </p>
-                )}
-
-                {/* Goals */}
-                {plan.goals && plan.goals.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Goals</h4>
-                    <ul className="space-y-1">
-                      {plan.goals.slice(0, 3).map((goal, i) => (
-                        <li key={i} className="text-sm text-gray-300 flex items-start">
-                          <span className="text-blue-400 mr-2">•</span>
-                          <span className="line-clamp-1">{goal}</span>
-                        </li>
-                      ))}
-                      {plan.goals.length > 3 && (
-                        <li className="text-xs text-gray-500">+{plan.goals.length - 3} more</li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Metadata */}
-                <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-4 bg-gray-900/30 -mx-6 px-6 py-3 rounded-b-xl">
-                  <span>Created {new Date(plan.createdAt).toLocaleDateString()}</span>
-                  <span className="text-blue-400 group-hover:text-blue-300">View Details →</span>
+                <div className={`px-6 py-4 border-t flex justify-between text-sm ${theme === 'dark' ? 'border-gray-800 bg-[#172133]' : 'border-gray-200 bg-gray-50'}`}>
+                  <span className="text-gray-500">Created {new Date(plan.createdAt).toLocaleDateString()}</span>
+                  <span className="text-blue-300">View Details →</span>
                 </div>
-              </motion.div>
+              </motion.button>
             ))}
           </div>
         )}

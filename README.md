@@ -1,54 +1,63 @@
-# React + TypeScript + Vite
+# Portfolio Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite portfolio frontend with admin panels, learning tracker, and contact workflow.
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- `npm run dev` - Start local development server.
+- `npm run build` - Type-check and build for production.
+- `npm run preview` - Preview production build.
+- `npm run lint` - Run ESLint checks.
 
-## Expanding the ESLint configuration
+## Architecture Map
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```text
+src/
+  app/
+    providers/       # Global providers composition (theme/admin/chatbot)
+    router/          # Route table + lazy-loaded route setup
+  layouts/           # Shared layout shells (navbar/main/chatbot wrapper)
+  constants/         # Static UI constants (navigation/social links)
+  components/
+    admin/           # Admin tab sections
+    home/            # Home page feature blocks
+    learning/        # Learning module UI blocks
+    ChatBot/         # Chat bot widgets
+    ...              # Reusable shared components
+  context/           # Global state/context providers
+  hooks/             # Data hooks
+  pages/             # Route-level pages
+  types/             # Shared TypeScript types
+  utils/             # API clients/config helpers
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Routing
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Centralized in `src/app/router/AppRoutes.tsx`.
+- Route-level lazy loading is enabled for better initial load performance.
+- `ProtectedRoute` wraps admin-only pages.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## Styling
+
+- Tailwind CSS is the primary styling system.
+- Global styles live in `src/index.css`.
+- Avoid ad hoc global CSS files unless truly shared and cross-page.
+
+## Accessibility Baseline
+
+- Skip link to main content is enabled in layout.
+- Primary navigation uses semantic `nav` and `aria-current`.
+- Form feedback uses live regions for success/error messaging.
+- External links use `rel="noopener noreferrer"`.
+
+## Maintenance Guidelines
+
+- Keep route-level logic in `pages/`; move reusable UI into `components/`.
+- Keep static content/config (like nav links) in `constants/`.
+- Add API types in `src/types` first, then consume in `utils`/`hooks`.
+- Prefer incremental refactors; avoid large structural rewrites without need.
+
+## Production Notes
+
+- Build and lint should pass before deploy.
+- If bundle size grows, prefer lazy loading and shared component extraction first.

@@ -27,6 +27,7 @@ interface PageSettings {
     showProjects: boolean;
     showExperiences: boolean;
     showLearning: boolean;
+    showAdmin: boolean;
   };
   socialLinks: {
     github: string;
@@ -56,6 +57,7 @@ export function Settings() {
       showProjects: true,
       showExperiences: true,
       showLearning: true,
+      showAdmin: true,
     },
     socialLinks: {
       github: '',
@@ -78,7 +80,13 @@ export function Settings() {
       if ('data' in response && response.data) {
         const settingsData = response.data as unknown as PageSettings;
         if ('homePage' in settingsData) {
-          setSettings(settingsData);
+          setSettings({
+            ...settingsData,
+            visibility: {
+              ...settingsData.visibility,
+              showAdmin: settingsData.visibility?.showAdmin ?? true,
+            },
+          });
         }
       }
     } catch (err) {
@@ -116,7 +124,13 @@ export function Settings() {
       if ('data' in response && response.data) {
         const settingsData = response.data as unknown as PageSettings;
         if ('homePage' in settingsData) {
-          setSettings(settingsData);
+          setSettings({
+            ...settingsData,
+            visibility: {
+              ...settingsData.visibility,
+              showAdmin: settingsData.visibility?.showAdmin ?? true,
+            },
+          });
           setSuccess('Settings saved successfully!');
           
           // Emit a custom event that the Home component can listen to
@@ -397,6 +411,22 @@ export function Settings() {
             />
             <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Show Learning Module
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={settings.visibility.showAdmin}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  visibility: { ...settings.visibility, showAdmin: e.target.checked },
+                })
+              }
+              className="h-4 w-4 text-blue-500 border-blue-500/30 rounded"
+            />
+            <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Show Admin Link
             </label>
           </div>
         </div>

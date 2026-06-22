@@ -41,7 +41,10 @@ export default function PhaseSection({ phase, tasks, isAdmin }: PhaseSectionProp
         </div>
 
         {phase.description && (
-          <p className="text-gray-400 text-sm mb-4 text-justify leading-relaxed">{phase.description}</p>
+          <div
+            className="text-gray-400 text-sm mb-4 text-justify leading-relaxed prose prose-invert prose-sm max-w-none [&_p]:my-1 [&_ul]:my-2 [&_ol]:my-2"
+            dangerouslySetInnerHTML={{ __html: phase.description }}
+          />
         )}
 
         {/* Progress Bar */}

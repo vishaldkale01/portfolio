@@ -17,6 +17,7 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
   const [activeTimer, setActiveTimer] = useState<any>(null);
   const [isChecking, setIsChecking] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [addingNote, setAddingNote] = useState(false);
 
   useEffect(() => {
     // Check if there's an active timer for this task
@@ -45,6 +46,34 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
     }
   };
 
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-500/10 text-red-300 border-red-500/30';
+      case 'low':
+        return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
+      default:
+        return 'bg-amber-500/10 text-amber-300 border-amber-500/30';
+    }
+  };
+
+  const getDueDateState = () => {
+    if (!task.dueDate) return null;
+    const due = new Date(task.dueDate);
+    due.setHours(0, 0, 0, 0);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (task.status !== 'completed' && diffDays < 0) {
+      return { label: 'Overdue', className: 'bg-red-500/10 text-red-300 border-red-500/30' };
+    }
+    if (task.status !== 'completed' && diffDays <= 2) {
+      return { label: 'Due Soon', className: 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30' };
+    }
+    return { label: `Due ${due.toLocaleDateString()}`, className: 'bg-blue-500/10 text-blue-300 border-blue-500/30' };
+  };
+
   const handleStatusChange = async (newStatus: string) => {
     if (updatingStatus) return;
     setUpdatingStatus(true);
@@ -57,6 +86,30 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
       setUpdatingStatus(false);
     }
   };
+
+  const quickSetStatus = async (newStatus: 'pending' | 'in-progress' | 'completed') => {
+    if (task.status === newStatus || updatingStatus) return;
+    await handleStatusChange(newStatus);
+  };
+
+  const handleAddNote = async () => {
+    const content = window.prompt('Add a quick learning note:');
+    if (!content || !content.trim()) return;
+
+    setAddingNote(true);
+    try {
+      await learningApi.addTaskNote(task._id, content.trim());
+      if (onStatusChange) onStatusChange();
+    } catch (error) {
+      console.error('Failed to add note', error);
+    } finally {
+      setAddingNote(false);
+    }
+  };
+
+  const dueDateState = getDueDateState();
+  const noteCount = task.notes?.length || 0;
+  const latestNote = noteCount > 0 ? task.notes?.[noteCount - 1] : null;
 
   return (
     <motion.div
@@ -76,8 +129,21 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
             >
               {task.title}
             </h4>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center flex-wrap gap-2 text-xs text-gray-500">
               <span>{new Date(task.createdAt).toLocaleDateString()}</span>
+              <span className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wider ${getPriorityColor(task.priority)}`}>
+                {task.priority || 'medium'}
+              </span>
+              {dueDateState && (
+                <span className={`px-2 py-0.5 rounded border text-[10px] font-semibold ${dueDateState.className}`}>
+                  {dueDateState.label}
+                </span>
+              )}
+              {noteCount > 0 && (
+                <span className="px-2 py-0.5 rounded border text-[10px] font-semibold bg-purple-500/10 text-purple-300 border-purple-500/30">
+                  {noteCount} note{noteCount > 1 ? 's' : ''}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -98,6 +164,45 @@ export default function TaskItem({ task, isAdmin, onEdit, onDelete, onStatusChan
           <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">
             {task.description}
           </p>
+        )}
+
+        {latestNote && (
+          <p className="text-xs text-purple-300/90 border-l-2 border-purple-500/30 pl-2">
+            Last note: {latestNote.content}
+          </p>
+        )}
+
+        {isAdmin && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => quickSetStatus('in-progress')}
+              disabled={updatingStatus || task.status === 'in-progress'}
+              className="px-2.5 py-1 text-[11px] rounded-md border border-blue-500/30 text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 disabled:opacity-50"
+            >
+              Start
+            </button>
+            <button
+              onClick={() => quickSetStatus('pending')}
+              disabled={updatingStatus || task.status === 'pending'}
+              className="px-2.5 py-1 text-[11px] rounded-md border border-gray-500/30 text-gray-300 bg-gray-500/10 hover:bg-gray-500/20 disabled:opacity-50"
+            >
+              Pause
+            </button>
+            <button
+              onClick={() => quickSetStatus('completed')}
+              disabled={updatingStatus || task.status === 'completed'}
+              className="px-2.5 py-1 text-[11px] rounded-md border border-green-500/30 text-green-300 bg-green-500/10 hover:bg-green-500/20 disabled:opacity-50"
+            >
+              Complete
+            </button>
+            <button
+              onClick={handleAddNote}
+              disabled={addingNote}
+              className="px-2.5 py-1 text-[11px] rounded-md border border-purple-500/30 text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 disabled:opacity-50"
+            >
+              {addingNote ? 'Saving...' : 'Add Note'}
+            </button>
+          </div>
         )}
       </div>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { api } from '../utils/api';
-import type { Contact, ApiResponse, ApiSuccessResponse, Settings } from '../types';
+import type { Contact as ContactPayload, ApiResponse, ApiSuccessResponse, Settings } from '../types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Contact() {
@@ -54,7 +54,7 @@ export function Contact() {
     setError('');
     
     try {
-      const response = await api.post<ApiSuccessResponse<Contact>>('/contact', formData);
+      const response = await api.post<ApiSuccessResponse<ContactPayload>>('/contact', formData);
       if ('data' in response && response.data) {
         setSuccess(true);
         setFormData({ name: '', email: '', message: '' });
@@ -76,10 +76,10 @@ export function Contact() {
   };
 
   return (
-    <div className="min-h-screen neural-bg py-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen neural-bg py-16 md:py-20">
+      <div className="section-shell max-w-4xl py-0">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-14">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -91,13 +91,13 @@ export function Contact() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="mt-4 text-xl text-gray-600 dark:text-gray-400"
+            className="section-intro mt-4"
           >
             {settings.description}
           </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           {/* Contact Info */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -152,14 +152,18 @@ export function Contact() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-1">GitHub</h3>
-                    <a 
-                      href={settings.github} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
-                    >
-                      {settings.github ? 'View Profile' : 'GitHub not set'}
-                    </a>
+                    {settings.github ? (
+                      <a
+                        href={settings.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
+                      >
+                        View Profile
+                      </a>
+                    ) : (
+                      <span className="text-gray-600 dark:text-gray-400">GitHub not set</span>
+                    )}
                   </div>
                 </div>
 
@@ -171,14 +175,18 @@ export function Contact() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-1">LinkedIn</h3>
-                    <a 
-                      href={settings.linkedin} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
-                    >
-                      {settings.linkedin ? 'Connect with Me' : 'LinkedIn not set'}
-                    </a>
+                    {settings.linkedin ? (
+                      <a
+                        href={settings.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
+                      >
+                        Connect with Me
+                      </a>
+                    ) : (
+                      <span className="text-gray-600 dark:text-gray-400">LinkedIn not set</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -192,7 +200,7 @@ export function Contact() {
             transition={{ delay: 0.3 }}
             className="relative z-20"
           >
-            <form onSubmit={handleSubmit} className="tech-card space-y-6">
+            <form onSubmit={handleSubmit} className="tech-card space-y-6" noValidate>
               <div className="relative">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Name
@@ -250,7 +258,7 @@ export function Contact() {
               <motion.button
                 type="submit"
                 disabled={loading}
-                className="button-primary w-full"
+                className="button-primary w-full text-sm"
                 whileHover={{ scale: loading ? 1 : 1.02 }}
                 whileTap={{ scale: loading ? 1 : 0.98 }}
               >
@@ -269,6 +277,8 @@ export function Contact() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="text-green-500 text-center"
+                  role="status"
+                  aria-live="polite"
                 >
                   Message sent successfully!
                 </motion.p>
@@ -279,6 +289,8 @@ export function Contact() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1 }}
                   className="text-red-500 text-center"
+                  role="alert"
+                  aria-live="assertive"
                 >
                   {error}
                 </motion.p>

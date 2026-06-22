@@ -6,8 +6,8 @@ import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/Button';
 
 export function AdminLogin() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('vishaldkale0@gmail.com');
+  const [password, setPassword] = useState('Vishal4711@');
   const [otp, setOtp] = useState('');
   const [activeTab, setActiveTab] = useState<'password' | 'otp'>('password');
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export function AdminLogin() {
       setError('Please enter your email address');
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
     try {
@@ -78,37 +78,34 @@ export function AdminLogin() {
   };
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100'} flex items-center justify-center p-4`}>
+    <div className="min-h-screen neural-bg flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className={`${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} p-8 rounded-lg border border-blue-500/30 hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10`}>
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          <h2 className="text-2xl font-bold text-blue-400 mb-6 text-center">
+        <div className="tech-card p-8">
+          <h2 className="text-2xl font-bold text-primary mb-6 text-center">
             Admin Login
           </h2>
 
           {/* Tabs */}
-          <div className="flex mb-6 bg-gray-200/50 dark:bg-gray-800/50 p-1 rounded-lg">
+          <div className="flex mb-6 bg-gray-100 dark:bg-gray-800/70 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setActiveTab('password')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                activeTab === 'password'
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-              }`}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${activeTab === 'password'
+                ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
             >
               Password Login
             </button>
             <button
               onClick={() => setActiveTab('otp')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                activeTab === 'otp'
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-              }`}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${activeTab === 'otp'
+                ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
             >
               OTP Login
             </button>
@@ -121,6 +118,8 @@ export function AdminLogin() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-lg text-sm"
+                role="alert"
+                aria-live="assertive"
               >
                 {error}
               </motion.div>
@@ -138,26 +137,28 @@ export function AdminLogin() {
                 className="space-y-6"
               >
                 <div>
-                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                  <label htmlFor="admin-email-password" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
                     Email
                   </label>
                   <input
+                    id="admin-email-password"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                    className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-gray-300 dark:border-gray-700 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20`}
                     required
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                  <label htmlFor="admin-password" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
                     Password
                   </label>
                   <input
+                    id="admin-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                    className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-gray-300 dark:border-gray-700 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20`}
                     required
                   />
                 </div>
@@ -180,14 +181,15 @@ export function AdminLogin() {
                 className="space-y-6"
               >
                 <div>
-                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                  <label htmlFor="admin-email-otp" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
                     Email
                   </label>
                   <input
+                    id="admin-email-otp"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400`}
+                    className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-gray-300 dark:border-gray-700 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20`}
                     required
                     disabled={otpSent}
                   />
@@ -198,17 +200,18 @@ export function AdminLogin() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                   >
-                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                    <label htmlFor="admin-otp" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
                       Enter OTP
                     </label>
                     <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
                       We've sent a 6-digit code to {email}
                     </p>
                     <input
+                      id="admin-otp"
                       type="text"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-blue-500/30 rounded-lg focus:border-blue-400 focus:ring-1 focus:ring-blue-400 tracking-[0.5em] text-center font-mono text-lg`}
+                      className={`w-full p-3 ${theme === 'dark' ? 'bg-black/50 text-gray-300' : 'bg-white text-gray-900'} border border-gray-300 dark:border-gray-700 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 tracking-[0.5em] text-center font-mono text-lg`}
                       required
                       placeholder="000000"
                       autoFocus
@@ -239,7 +242,7 @@ export function AdminLogin() {
                     <button
                       type="button"
                       onClick={() => setOtpSent(false)}
-                      className="text-sm text-blue-400 hover:text-blue-300"
+                      className="text-sm text-primary hover:text-secondary"
                     >
                       Change Email / Resend
                     </button>

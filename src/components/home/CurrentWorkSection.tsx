@@ -15,17 +15,17 @@ export function CurrentWorkSection({ projects, experiences }: CurrentWorkSection
   }
 
   return (
-    <section id="projects" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <section id="projects" className="section-shell">
       <motion.h2 
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="section-title text-center mb-16"
+        className="section-title text-center mb-14"
       >
         Current Work
       </motion.h2>
 
-      <div className="grid md:grid-cols-2 gap-12 items-center">
+      <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
         {currentExperiences.length > 0 && (
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -33,14 +33,14 @@ export function CurrentWorkSection({ projects, experiences }: CurrentWorkSection
             viewport={{ once: true }}
           >
             {currentExperiences.map(experience => (
-              <div key={experience._id} className="mb-8">
-                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+              <article key={experience._id} className="tech-card mb-6">
+                <h3 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-1">
                   {experience.role}
                 </h3>
-                <h4 className="text-lg text-primary mb-4">
+                <h4 className="text-base md:text-lg text-primary mb-3">
                   {experience.company}
                 </h4>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                   {experience.description}
                 </p>
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -53,7 +53,7 @@ export function CurrentWorkSection({ projects, experiences }: CurrentWorkSection
                     </span>
                   ))}
                 </div>
-                <ul className="space-y-2">
+                <ul className="space-y-2.5">
                   {experience.responsibilities.map((resp, index) => (
                     <li key={index} className="flex items-start space-x-2 text-gray-700 dark:text-gray-300">
                       <svg className="w-5 h-5 mt-1 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@ export function CurrentWorkSection({ projects, experiences }: CurrentWorkSection
                     </li>
                   ))}
                 </ul>
-              </div>
+              </article>
             ))}
           </motion.div>
         )}
@@ -74,12 +74,12 @@ export function CurrentWorkSection({ projects, experiences }: CurrentWorkSection
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">
+            <h3 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">
               Recent Projects
             </h3>
             <div className="space-y-6">
               {currentProjects.map(project => (
-                <div key={project._id} className="tech-card group">
+                <article key={project._id} className="tech-card group">
                   <h4 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
                     {project.title}
                   </h4>
@@ -93,7 +93,7 @@ export function CurrentWorkSection({ projects, experiences }: CurrentWorkSection
                       </span>
                     ))}
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                     {project.description}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -106,7 +106,7 @@ export function CurrentWorkSection({ projects, experiences }: CurrentWorkSection
                       </span>
                     ))}
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           </motion.div>

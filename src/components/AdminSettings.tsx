@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from './Button';
@@ -33,22 +33,22 @@ export function AdminSettings() {
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [loginTypeSuccess, setLoginTypeSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchAdminSettings();
-  }, []);
-
-  const fetchAdminSettings = async () => {
+  const fetchAdminSettings = useCallback(async () => {
     try {
       const response = await api.get<{ email: string; username: string; loginType: 'password' | 'otp' }>('/admin/settings');
       if (!response.error && response.data) {
         setAdminData(response.data);
         setSelectedLoginType(response.data.loginType);
-        setEmailData({ ...emailData, email: response.data.email });
+        setEmailData((prev) => ({ ...prev, email: response.data.email }));
       }
     } catch (error) {
       console.error('Failed to fetch admin settings:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAdminSettings();
+  }, [fetchAdminSettings]);
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();

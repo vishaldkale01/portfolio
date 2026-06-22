@@ -1,4 +1,4 @@
-import { ApiResponse, ApiErrorResponse } from '../types';
+import { ApiResponse } from '../types';
 import { getApiUrl } from './config';
 
 class ApiError extends Error {

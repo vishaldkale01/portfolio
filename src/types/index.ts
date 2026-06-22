@@ -63,6 +63,7 @@ export interface Settings {
     showProjects: boolean;
     showExperiences: boolean;
     showLearning: boolean;
+    showAdmin: boolean;
   };
   socialLinks: {
     github: string;

@@ -7,6 +7,7 @@ export interface LearningPlan {
     description?: string;
     goals?: string[];
     status: 'active' | 'completed' | 'paused' | 'archived';
+    isPublic?: boolean;
     startDate?: string;
     targetEndDate?: string;
     actualEndDate?: string;
@@ -27,13 +28,75 @@ export interface Phase {
 
 export interface LearningTask {
     _id: string;
+    priority?: 'low' | 'medium' | 'high';
     title: string;
     description?: string;
     aim?: string;
+    lessonSections?: LessonSection[];
+    exercise?: LearningExercise;
+    exercises?: LearningExercise[];
+    resources?: string[];
+    flashcards?: Flashcard[];
+    confidenceScore?: number;
+    order?: number;
+    // Legacy fields kept optional for older content.
+    pythonConcept?: string;
+    tradingConcept?: string;
+    projectConnection?: string;
     planId: string;
     phaseId?: string;
+    dueDate?: string;
+    notes?: LearningTaskNote[];
     status: 'pending' | 'in-progress' | 'completed';
+    completedAt?: string;
     totalTimeSpent: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface LessonSection {
+    title: string;
+    content: string;
+    order: number;
+}
+
+export interface LearningExercise {
+    type: 'coding' | 'reading' | 'quiz' | 'project' | 'debugging';
+    language?: 'javascript' | 'python';
+    prompt: string;
+    starterCode?: string;
+    expectedOutput?: string;
+    testCases?: Array<{
+        input: string;
+        expectedOutput: string;
+    }>;
+    hints?: string[];
+    solution?: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
+    order?: number;
+}
+
+export interface Flashcard {
+    question: string;
+    answer: string;
+}
+
+export interface LearningTaskNote {
+    content: string;
+    createdAt: string;
+}
+
+export interface DailyLearningLog {
+    _id: string;
+    planId: string;
+    taskId?: string | { _id: string; title: string };
+    date: string;
+    lessonSummary?: string;
+    practiceSummary?: string;
+    projectConnection?: string;
+    doubts?: string;
+    notes?: string;
+    confidenceScore?: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -97,13 +160,30 @@ export interface TaskComment {
     updatedAt: string;
 }
 
+export interface LearningSubmission {
+    _id: string;
+    planId: string;
+    phaseId?: string;
+    taskId: string;
+    language: 'javascript' | 'python';
+    code: string;
+    output?: string;
+    error?: string;
+    status: 'saved' | 'success' | 'error' | 'timeout';
+    executionTimeMs?: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
 // ========== Learning Plans ==========
 export const learningApi = {
     // Get all plans
-    getAllPlans: () => api.get<LearningPlan[]>('/learning/plans'),
+    getAllPlans: (includeHidden = false) =>
+        api.get<LearningPlan[]>(`/learning/plans${includeHidden ? '?includeHidden=true' : ''}`),
 
     // Get single plan with details
-    getPlanById: (id: string) => api.get<PlanDetail>(`/learning/plans/${id}`),
+    getPlanById: (id: string, includeHidden = false) =>
+        api.get<PlanDetail>(`/learning/plans/${id}${includeHidden ? '?includeHidden=true' : ''}`),
 
     // Create plan (admin only)
     createPlan: (plan: Partial<LearningPlan>) =>
@@ -116,6 +196,17 @@ export const learningApi = {
     // Delete plan (admin only)
     deletePlan: (id: string) =>
         api.delete(`/learning/plans/${id}`),
+
+    // Seed Python + Stock Market + Algo Project roadmap (admin only)
+    seedPythonAlgoRoadmap: () =>
+        api.post<{ message: string; plan: LearningPlan; phasesCreated: number; tasksCreated: number }>('/learning/seed/python-algo-roadmap', {}),
+
+    // Daily learning logs
+    getDailyLogs: (planId: string, limit = 30) =>
+        api.get<DailyLearningLog[]>(`/learning/plans/${planId}/daily-logs?limit=${limit}`),
+
+    createDailyLog: (planId: string, log: Partial<DailyLearningLog>) =>
+        api.post<DailyLearningLog>(`/learning/plans/${planId}/daily-logs`, log),
 
     // ========== Phases ==========
 
@@ -144,6 +235,19 @@ export const learningApi = {
     // Delete task (admin only)
     deleteTask: (id: string) =>
         api.delete(`/learning/tasks/${id}`),
+
+    // Add task note (admin only)
+    addTaskNote: (id: string, content: string) =>
+        api.post<LearningTask>(`/learning/tasks/${id}/notes`, { content }),
+
+    getTaskSubmissions: (taskId: string) =>
+        api.get<LearningSubmission[]>(`/learning/tasks/${taskId}/submissions`),
+
+    createSubmission: (taskId: string, submission: Partial<LearningSubmission>) =>
+        api.post<LearningSubmission>(`/learning/tasks/${taskId}/submissions`, submission),
+
+    runSubmission: (taskId: string, payload: { language: 'javascript' | 'python'; code: string }) =>
+        api.post<LearningSubmission>(`/learning/tasks/${taskId}/run`, payload),
 };
 
 // ========== Time Tracking ==========

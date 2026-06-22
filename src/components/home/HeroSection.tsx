@@ -11,27 +11,27 @@ export function HeroSection({ title, subtitle, description }: HeroSectionProps) 
   const navigate = useNavigate();
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <section className="section-shell pt-14 md:pt-20">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center"
       >
-        <h1 className="text-4xl md:text-6xl font-bold mb-6">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl leading-tight font-bold mb-6">
           <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             {title}
           </span>
           <br />
-          <span className="text-gray-700 dark:text-gray-300">
+          <span className="text-gray-700 dark:text-gray-300 block mt-1">
             {subtitle}
           </span>
         </h1>
-        <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-12">
+        <p className="section-intro mb-10">
           {description}
         </p>
         
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-3 sm:gap-4 flex-wrap">
           <motion.button
             onClick={() => navigate('/contact')}
             whileHover={{ scale: 1.05 }}

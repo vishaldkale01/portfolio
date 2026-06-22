@@ -43,10 +43,10 @@ export function Projects() {
   const projectTypes: ProjectType[] = ['all', 'backend', 'frontend', 'fullstack', 'ai', 'mobile'];
 
   return (
-    <div className="min-h-screen neural-bg py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen neural-bg py-16 md:py-20">
+      <div className="section-shell py-0">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-14">
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -58,22 +58,22 @@ export function Projects() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="mt-4 text-xl text-gray-600 dark:text-gray-400"
+            className="section-intro mt-4"
           >
             Showcasing my diverse portfolio of software projects
           </motion.p>
         </div>
 
         {/* Filters */}
-        <div className="flex justify-center gap-4 mb-12 flex-wrap">
+        <div className="flex justify-center gap-2.5 mb-10 flex-wrap">
           {projectTypes.map((type) => (
             <motion.button
               key={type}
               onClick={() => setActiveFilter(type)}
-              className={`px-6 py-2 rounded-lg font-mono text-sm transition-all
+              className={`px-4 py-2 rounded-lg font-mono text-sm transition-all border
                 ${activeFilter === type 
-                  ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg' 
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  ? 'bg-gradient-to-r from-primary to-secondary text-white border-transparent shadow-md' 
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -86,7 +86,7 @@ export function Projects() {
         {/* Projects Grid */}
         <motion.div 
           layout
-          className="grid grid-cols-1 md:grid-cols-2 gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           <AnimatePresence mode="wait">
             {filteredProjects.map((project) => (
@@ -100,11 +100,11 @@ export function Projects() {
                 className="tech-card group"
               >
                 <div className="relative z-10 h-full flex flex-col">
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex justify-between items-start mb-3 gap-3">
                     <h3 className="text-xl font-mono font-bold group-hover:text-primary transition-colors">
                       {project.title}
                     </h3>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap justify-end">
                       {project.isCurrentProject && (
                         <span className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">
                           Current Project

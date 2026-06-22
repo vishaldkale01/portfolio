@@ -59,10 +59,10 @@ export function Experience() {
   }
 
   return (
-    <div className="min-h-screen neural-bg py-20">
+    <div className="min-h-screen neural-bg py-16 md:py-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-14">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -74,7 +74,7 @@ export function Experience() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="mt-4 text-xl text-gray-600 dark:text-gray-400"
+            className="section-intro mt-4"
           >
             My journey in Backend Development and AI/ML
           </motion.p>
@@ -94,13 +94,13 @@ export function Experience() {
             <motion.div
               key={experience._id}
               variants={itemVariants}
-              className={`relative grid grid-cols-1 md:grid-cols-2 gap-8 mb-12`}
+              className={`relative grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-10`}
             >
               {/* Timeline dot */}
               <div className="hidden md:block absolute left-1/2 top-0 w-4 h-4 -ml-2 rounded-full bg-gradient-to-r from-primary to-secondary shadow-lg" />
 
               {/* Content */}
-              <div className={`tech-card ${
+              <article className={`tech-card ${
                 index % 2 === 0 
                   ? 'md:mr-8' 
                   : 'md:ml-8 md:col-start-2'
@@ -119,7 +119,7 @@ export function Experience() {
                     {experience.role}
                   </h3>
                   <h4 className="text-lg text-gray-600 dark:text-gray-400 mb-4 text-left">{experience.company}</h4>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 whitespace-pre-line text-left">{experience.description}</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 whitespace-pre-line text-left leading-relaxed">{experience.description}</p>
 
                   {/* Technologies */}
                   <div className="flex flex-wrap gap-2 mb-4 justify-start">
@@ -145,7 +145,7 @@ export function Experience() {
                     ))}
                   </ul>
                 </div>
-              </div>
+              </article>
             </motion.div>
           ))}
         </motion.div>

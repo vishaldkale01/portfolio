@@ -107,93 +107,82 @@ export default function PlanFormModal({ isOpen, onClose, onSuccess, plan }: Plan
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Title *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-              placeholder="e.g., Master React & TypeScript"
-            />
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="lg:col-span-2 space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  placeholder="e.g., Master React & TypeScript"
+                />
+              </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
-              placeholder="Brief description of this learning plan..."
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={4}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
+                  placeholder="Brief description of this learning plan..."
+                />
+              </div>
 
-          {/* Goals */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Goals (one per line)
-            </label>
-            <textarea
-              value={formData.goals}
-              onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
-              rows={4}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none font-mono text-sm"
-              placeholder="Learn React Hooks&#10;Master TypeScript&#10;Build 5 projects"
-            />
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Status
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-            >
-              <option value="active">Active</option>
-              <option value="paused">Paused</option>
-              <option value="completed">Completed</option>
-              <option value="archived">Archived</option>
-            </select>
-          </div>
-
-          {/* Dates */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Start Date
-              </label>
-              <input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-              />
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Goals (one per line)</label>
+                <textarea
+                  value={formData.goals}
+                  onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
+                  rows={6}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none font-mono text-sm"
+                  placeholder="Learn React Hooks&#10;Master TypeScript&#10;Build 5 projects"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Target End Date
-              </label>
-              <input
-                type="date"
-                value={formData.targetEndDate}
-                onChange={(e) => setFormData({ ...formData, targetEndDate: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-              />
-            </div>
+
+            <aside className="space-y-4 lg:pl-2">
+              <div className="bg-gray-800/60 border border-gray-700 rounded-lg p-4 space-y-4">
+                <h3 className="text-xs uppercase tracking-wider text-gray-400 font-semibold">Settings</h3>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  >
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                    <option value="completed">Completed</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Start Date</label>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Target End Date</label>
+                  <input
+                    type="date"
+                    value={formData.targetEndDate}
+                    onChange={(e) => setFormData({ ...formData, targetEndDate: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
+              </div>
+            </aside>
           </div>
 
-          {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <button
               type="button"

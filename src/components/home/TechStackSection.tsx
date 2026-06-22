@@ -29,12 +29,12 @@ export function TechStackSection({ skillsByCategory }: TechStackSectionProps) {
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <section className="section-shell">
       <motion.h2 
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="section-title text-center mb-16"
+        className="section-title text-center mb-14"
       >
         Tech Stack
       </motion.h2>
@@ -44,7 +44,7 @@ export function TechStackSection({ skillsByCategory }: TechStackSectionProps) {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
       >
         {Object.entries(skillsByCategory).map(([category, skills]) => (
           <motion.div
@@ -55,14 +55,14 @@ export function TechStackSection({ skillsByCategory }: TechStackSectionProps) {
             whileHover={{ scale: 1.02 }}
           >
             <div className="relative z-10">
-              <h3 className="text-lg font-mono font-semibold mb-3 group-hover:text-primary transition-colors capitalize">
+              <h3 className="text-base md:text-lg font-mono font-semibold mb-3 group-hover:text-primary transition-colors capitalize">
                 {category}
               </h3>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {skills.map((skill) => (
                   <span
                     key={skill._id}
-                    className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full"
+                    className="px-2.5 py-1 text-xs bg-primary/10 text-primary rounded-full"
                   >
                     {skill.name}
                   </span>
