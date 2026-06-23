@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { LearningExercise, LearningPlan, LearningTask, LessonSection, Phase, PlanDetail as PlanDetailType, TaskComment, commentApi, learningApi } from '../../utils/learningApi';
 import { useTheme } from '../../context/ThemeContext';
 
+type LessonTab = 'overview' | 'theory' | 'practice' | 'code' | 'interview' | 'notes';
+
 export default function LearningManagementPanel() {
   useTheme();
   const isDark = true;
@@ -10,7 +12,17 @@ export default function LearningManagementPanel() {
   const [selectedPhaseId, setSelectedPhaseId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showOptionsPanel, setShowOptionsPanel] = useState(true);
+  const [showOptionsPanel, setShowOptionsPanel] = useState(() => localStorage.getItem('learningDetailsCollapsed') !== 'true');
+  const [isRoadmapCollapsed, setIsRoadmapCollapsed] = useState(() => localStorage.getItem('learningRoadmapCollapsed') === 'true');
+  const [activeTab, setActiveTab] = useState<LessonTab>(() => (localStorage.getItem('learningActiveTab') as LessonTab) || 'overview');
+  const [roadmapSearch, setRoadmapSearch] = useState('');
+  const [roadmapFilter, setRoadmapFilter] = useState('All');
+  const [codeLanguage, setCodeLanguage] = useState<'javascript' | 'python'>('javascript');
+  const [codeValue, setCodeValue] = useState('');
+  const [codeOutput, setCodeOutput] = useState('');
+  const [notesContent, setNotesContent] = useState('');
+  const [notesSaved, setNotesSaved] = useState(false);
+  const [openInterviewIndex, setOpenInterviewIndex] = useState(0);
   const [taskComments, setTaskComments] = useState<TaskComment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentDraft, setCommentDraft] = useState('');
@@ -76,6 +88,18 @@ export default function LearningManagementPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem('learningRoadmapCollapsed', String(isRoadmapCollapsed));
+  }, [isRoadmapCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem('learningDetailsCollapsed', String(!showOptionsPanel));
+  }, [showOptionsPanel]);
+
+  useEffect(() => {
+    localStorage.setItem('learningActiveTab', activeTab);
+  }, [activeTab]);
+
   const tasks = useMemo(() => selectedPlan?.tasks ?? [], [selectedPlan]);
 
   const sortedPhases = useMemo(
@@ -105,6 +129,24 @@ export default function LearningManagementPanel() {
     [tasks, selectedTaskId],
   );
 
+  const filteredPlans = useMemo(() => {
+    const search = roadmapSearch.trim().toLowerCase();
+    return plans.filter((plan) => {
+      const matchesSearch = !search || [plan.title, plan.description, plan.status].some((value) => value?.toLowerCase().includes(search));
+      const matchesFilter =
+        roadmapFilter === 'All' ||
+        (roadmapFilter === 'Active' && plan.status === 'active') ||
+        plan.title.toLowerCase().includes(roadmapFilter.toLowerCase()) ||
+        plan.description?.toLowerCase().includes(roadmapFilter.toLowerCase());
+      return matchesSearch && matchesFilter;
+    });
+  }, [plans, roadmapFilter, roadmapSearch]);
+
+  const currentProgress = useMemo(() => {
+    if (!tasks.length) return 0;
+    return Math.round((tasks.filter((task) => task.status === 'completed').length / tasks.length) * 100);
+  }, [tasks]);
+
   useEffect(() => {
     const loadCommentsAndDraft = async () => {
       if (!selectedTask) {
@@ -122,6 +164,12 @@ export default function LearningManagementPanel() {
         priority: selectedTask.priority || 'medium',
         dueDate: selectedTask.dueDate ? new Date(selectedTask.dueDate).toISOString().slice(0, 10) : '',
       });
+      const firstExercise = selectedTask.exercises?.[0] || selectedTask.exercise;
+      setCodeLanguage(firstExercise?.language || 'javascript');
+      setCodeValue(firstExercise?.starterCode || DEFAULT_CODE_SAMPLE);
+      setCodeOutput('');
+      setNotesContent(selectedTask.notes?.[0]?.content || buildDefaultNotes(selectedTask));
+      setNotesSaved(false);
 
       setCommentsLoading(true);
       try {
@@ -328,8 +376,14 @@ export default function LearningManagementPanel() {
       alert(response.error || 'Could not update plan visibility');
       return;
     }
-    await fetchPlanDetail(selectedPlan.plan._id, { keepTask: true });
-    await fetchPlans();
+    setSelectedPlan((current) =>
+      current
+        ? { ...current, plan: { ...current.plan, isPublic: nextIsPublic } }
+        : current,
+    );
+    setPlans((current) =>
+      current.map((plan) => (plan._id === selectedPlan.plan._id ? { ...plan, isPublic: nextIsPublic } : plan)),
+    );
   };
 
   const deleteSelectedPlan = async () => {
@@ -359,6 +413,43 @@ export default function LearningManagementPanel() {
     } else {
       setSelectedPlan(null);
     }
+  };
+
+  const markSelectedTaskComplete = async () => {
+    if (!selectedTask) return;
+    const nextStatus: LearningTask['status'] = selectedTask.status === 'completed' ? 'in-progress' : 'completed';
+    setDetailDraft((prev) => ({ ...prev, status: nextStatus }));
+    await updateSelectedTaskInline({ status: nextStatus });
+  };
+
+  const runCodeSample = () => {
+    const languageLabel = codeLanguage === 'python' ? 'Python' : 'JavaScript';
+    setCodeOutput(`${languageLabel} runner placeholder\n\nCode is ready to execute once a safe execution service is connected.`);
+  };
+
+  const resetCodeSample = () => {
+    const firstExercise = selectedTask?.exercises?.[0] || selectedTask?.exercise;
+    setCodeValue(firstExercise?.starterCode || DEFAULT_CODE_SAMPLE);
+    setCodeOutput('');
+  };
+
+  const copyCodeSample = async () => {
+    try {
+      await navigator.clipboard.writeText(codeValue);
+      setCodeOutput('Code copied to clipboard.');
+    } catch {
+      setCodeOutput('Could not copy code automatically.');
+    }
+  };
+
+  const saveNotes = async () => {
+    if (!selectedTask || !notesContent.trim()) return;
+    const response = await learningApi.addTaskNote(selectedTask._id, notesContent.trim());
+    if ('error' in response) {
+      alert(response.error || 'Could not save notes');
+      return;
+    }
+    setNotesSaved(true);
   };
 
   const createTask = async () => {
@@ -548,14 +639,31 @@ export default function LearningManagementPanel() {
           </nav>
         </aside>
 
-        <aside className={`hidden md:flex h-full flex-col flex-shrink-0 w-[312px] border-r ${borderCol} ${bgSidebar}`}>
-          <div className={`flex items-center justify-between px-4 h-[68px] border-b ${isDark ? 'border-[#12203b]' : 'border-gray-200'}`}>
-            <h3 className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Learning / Tasks</h3>
+        <aside className={`hidden md:flex h-full flex-col flex-shrink-0 border-r transition-all duration-200 ${isRoadmapCollapsed ? 'w-12' : 'w-[312px]'} ${borderCol} ${bgSidebar}`}>
+          <div className={`flex items-center justify-between px-3 h-[68px] border-b ${isDark ? 'border-[#12203b]' : 'border-gray-200'}`}>
+            {!isRoadmapCollapsed && <h3 className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>Learning Roadmap</h3>}
             <div className="flex items-center gap-2">
-              <button onClick={() => { openAddTask(); setShowAddPlan(false); }} className={`h-6 px-2 rounded border text-[11px] ${isDark ? 'border-[#1f3150] text-gray-300 hover:bg-[#13203a]' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>Task</button>
-              <button onClick={() => { setShowAddPlan((v) => !v); setShowAddTask(false); setShowImportPlan(false); }} className={`h-6 w-6 rounded border ${isDark ? 'border-[#1f3150] text-gray-300 hover:bg-[#13203a]' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>+</button>
+              {!isRoadmapCollapsed && (
+                <>
+                  <button onClick={() => { openAddTask(); setShowAddPlan(false); }} className={`h-6 px-2 rounded border text-[11px] ${isDark ? 'border-[#1f3150] text-gray-300 hover:bg-[#13203a]' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>Task</button>
+                  <button onClick={() => { setShowAddPlan((v) => !v); setShowAddTask(false); setShowImportPlan(false); }} className={`h-6 w-6 rounded border ${isDark ? 'border-[#1f3150] text-gray-300 hover:bg-[#13203a]' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>+</button>
+                </>
+              )}
+              <button
+                onClick={() => setIsRoadmapCollapsed((value) => !value)}
+                aria-label={isRoadmapCollapsed ? 'Expand learning roadmap' : 'Collapse learning roadmap'}
+                className={`h-7 w-7 rounded border ${isDark ? 'border-[#1f3150] text-gray-300 hover:bg-[#13203a]' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}
+              >
+                {isRoadmapCollapsed ? '>' : '<'}
+              </button>
             </div>
           </div>
+          {isRoadmapCollapsed ? (
+            <div className="flex flex-1 items-start justify-center pt-4 text-xs text-gray-500 [writing-mode:vertical-rl]">
+              Roadmap
+            </div>
+          ) : (
+          <>
           {showAddPlan && (
             <div className={`px-3 py-3 border-b ${isDark ? 'border-[#12203b] bg-[#0b1429]' : 'border-gray-200 bg-gray-50'} space-y-2`}>
               <input value={planDraft.title} onChange={(e) => setPlanDraft((p) => ({ ...p, title: e.target.value }))} placeholder="Plan title" className="w-full rounded-md border border-[#2a3b57] bg-[#1b2a42] px-2 py-1.5 text-sm text-gray-100" />
@@ -612,8 +720,34 @@ export default function LearningManagementPanel() {
               </div>
             </div>
           )}
-          <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2 space-y-1.5">
-            {plans.map((plan) => (
+          <div className="border-b border-[#12203b] px-3 py-3 space-y-3">
+            <div className="relative">
+              <input
+                value={roadmapSearch}
+                onChange={(event) => setRoadmapSearch(event.target.value)}
+                placeholder="Search lessons..."
+                className="w-full rounded-lg border border-[#1f3150] bg-[#0b1426] px-3 py-2 pr-12 text-xs text-gray-100 outline-none placeholder:text-gray-500 focus:border-[#2f7cff]"
+              />
+              <span className="absolute right-3 top-2.5 text-[10px] text-gray-500">Ctrl K</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {['All', 'Active', 'JavaScript', 'Backend', 'Algo'].map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setRoadmapFilter(filter)}
+                  className={`rounded-md border px-2.5 py-1 text-[11px] transition ${roadmapFilter === filter ? 'border-[#2f7cff] bg-[#2f7cff] text-white' : 'border-[#1f3150] bg-[#0b1426] text-gray-400 hover:text-gray-200'}`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-gray-500">
+              <span>{selectedPlan?.plan.title || 'Learning plans'}</span>
+              <span>{filteredPlans.length}/{plans.length}</span>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-2">
+            {filteredPlans.map((plan) => (
               <button
                 key={plan._id}
                 onClick={() => fetchPlanDetail(plan._id)}
@@ -638,7 +772,19 @@ export default function LearningManagementPanel() {
                 </div>
               </button>
             ))}
+            {filteredPlans.length === 0 && (
+              <div className="rounded-lg border border-dashed border-[#1f3150] px-3 py-6 text-center text-xs text-gray-500">
+                No roadmap items match this filter.
+              </div>
+            )}
           </div>
+          <div className="border-t border-[#12203b] p-3">
+            <button onClick={() => { openAddTask(); setShowAddPlan(false); }} className="w-full rounded-lg border border-[#1f3150] px-3 py-2 text-xs text-gray-300 hover:bg-[#13203a]">
+              + Add Custom Task
+            </button>
+          </div>
+          </>
+          )}
         </aside>
 
         <main className={`min-w-0 h-full overflow-hidden ${bgMain}`}>
@@ -962,7 +1108,7 @@ export default function LearningManagementPanel() {
               </div>
             </div>
           ) : (
-            <div className="h-full grid grid-cols-1 xl:grid-cols-[1fr_296px]">
+            <div className={`h-full grid grid-cols-1 ${showOptionsPanel ? 'xl:grid-cols-[1fr_296px]' : 'xl:grid-cols-1'}`}>
               <section className="min-w-0 h-full overflow-y-auto">
                 <div className={`sticky top-0 z-20 border-b backdrop-blur px-5 py-3 ${borderCol} ${isDark ? 'bg-[#070d1b]/95' : 'bg-white/90'}`}>
                   <div className="flex items-center justify-between gap-3">
@@ -973,7 +1119,7 @@ export default function LearningManagementPanel() {
                       <span className="mx-2 text-gray-600">/</span>
                       <span className="truncate text-gray-300">Day 1 - JavaScript Introduction</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-400 xl:hidden">
+                    <div className={`flex items-center gap-2 text-xs text-gray-400 ${showOptionsPanel ? 'xl:hidden' : 'xl:flex'}`}>
                       <span>{selectedTaskIndex >= 0 ? `${selectedTaskIndex + 1} / ${tasks.length}` : '-'}</span>
                       <button
                         onClick={prevTask}
@@ -999,143 +1145,45 @@ export default function LearningManagementPanel() {
                   </div>
                 </div>
 
-                <div className="w-full px-6 md:px-8 xl:px-9 py-7">
-                  <h1
-                    contentEditable
-                    suppressContentEditableWarning
-                    onInput={(e) =>
-                      setDetailDraft((prev) => ({
-                        ...prev,
-                        title: (e.currentTarget.textContent || '').trimStart(),
-                      }))
-                    }
-                    onBlur={() => {
-                      const next = detailDraft.title.trim();
-                      if (next && next !== selectedTask.title) {
-                        updateSelectedTaskInline({ title: next });
-                      }
-                    }}
-                    className={`outline-none text-[48px] leading-[1.08] font-semibold tracking-[-0.01em] ${textPrimary}`}
-                  >
-                    {detailDraft.title}
-                  </h1>
-
-                  <p
-                    contentEditable
-                    suppressContentEditableWarning
-                    onInput={(e) =>
-                      setDetailDraft((prev) => ({
-                        ...prev,
-                        description: e.currentTarget.textContent || '',
-                      }))
-                    }
-                    onBlur={() => {
-                      const cleaned = normalizeDescription(detailDraft.description);
-                      if (cleaned !== normalizeDescription(selectedTask.description || '')) {
-                        updateSelectedTaskInline({ description: cleaned });
-                      }
-                    }}
-                    className={`mt-4 max-w-[760px] outline-none text-[15px] leading-[1.7] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
-                  >
-                    {normalizeDescription(detailDraft.description)}
-                  </p>
-
-                  <div className={`mt-8 grid gap-4 max-w-[860px] ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <LessonSectionsEditor
-                      sections={detailDraft.lessonSections}
-                      onChange={(lessonSections) => setDetailDraft((prev) => ({ ...prev, lessonSections }))}
-                      onSave={(openNew = false) => {
-                        const lessonSections = normalizeLessonSections(detailDraft.lessonSections);
-                        if (detailDraft.lessonSections.length > 0 && lessonSections.length === 0) {
-                          alert('Add a section title and content before saving a lesson section.');
-                          return false;
-                        }
-                        setDetailDraft((prev) => ({
-                          ...prev,
-                          lessonSections: openNew
-                            ? [{ title: '', content: '', order: lessonSections.length + 1 }, ...lessonSections]
-                            : lessonSections,
-                        }));
-                        updateSelectedTaskInline({ lessonSections }, { skipRefetch: true, skipLocalUpdate: true });
-                        return true;
-                      }}
-                    />
-                    <ExercisesEditor
-                      exercises={detailDraft.exercises}
-                      onChange={(exercises) => setDetailDraft((prev) => ({ ...prev, exercises }))}
-                      onSave={(openNew = false, template?: ExerciseDraft) => {
-                        const exercises = detailDraft.exercises
-                          .map(fromExerciseDraft)
-                          .filter(Boolean) as LearningExercise[];
-                        if (detailDraft.exercises.length > 0 && exercises.length === 0) {
-                          alert('Add a prompt, starter code, expected output, hint, or solution before saving an exercise.');
-                          return false;
-                        }
-                        const savedDrafts = exercises.map((exercise, index) => toExerciseDraft(exercise, index + 1));
-                        setDetailDraft((prev) => ({
-                          ...prev,
-                          exercises: openNew
-                            ? [
-                                createExerciseDraft(savedDrafts.length + 1, template),
-                                ...savedDrafts,
-                              ]
-                            : savedDrafts,
-                        }));
-                        updateSelectedTaskInline({
-                          exercises,
-                          exercise: exercises[0],
-                        }, { skipRefetch: true, skipLocalUpdate: true });
-                        return true;
-                      }}
-                    />
-                  </div>
-
-                  <div className={`mt-8 border-t pt-6 max-w-[860px] ${isDark ? 'border-[#172945]' : 'border-gray-200'}`}>
-                    <h4 className={`text-[41px] font-semibold mb-4 ${textPrimary}`}>Comments</h4>
-
-                    <div className="space-y-3 mb-4">
-                      {commentsLoading ? (
-                        <p className={`text-sm ${textMuted}`}>Loading comments...</p>
-                      ) : taskComments.length === 0 ? (
-                        <p className={`text-sm ${textMuted}`}>No comments yet.</p>
-                      ) : (
-                        taskComments.map((comment) => (
-                          <div key={comment._id} className={`rounded-xl border px-4 py-3 ${isDark ? 'border-[#1b2d49] bg-[#0f1a31]' : 'border-gray-200 bg-gray-50'}`}>
-                            <div className="flex items-center justify-between gap-3">
-                              <div className={`text-sm font-medium ${textPrimary}`}>{comment.author}</div>
-                              <div className={`text-xs ${textMuted}`}>{new Date(comment.createdAt).toLocaleString()}</div>
-                            </div>
-                            <p className={`mt-1 whitespace-pre-wrap text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{comment.content}</p>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    <textarea
-                      value={commentDraft}
-                      onChange={(e) => setCommentDraft(e.target.value)}
-                      rows={5}
-                      placeholder="Leave a comment..."
-                      className={`w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-[#2f7cff] ${isDark
-                          ? 'border-[#223655] bg-[#0f1a31] text-white placeholder:text-gray-500'
-                          : 'border-gray-300 bg-white text-gray-900 placeholder:text-gray-400'
-                        }`}
-                    />
-                    <div className="mt-3 flex justify-end">
-                      <button
-                        onClick={submitComment}
-                        disabled={submittingComment || !commentDraft.trim()}
-                        className="rounded-xl bg-[#2f66df] px-4 py-2 text-sm font-semibold text-white disabled:opacity-45 hover:bg-[#2552b3] transition-colors"
-                      >
-                        {submittingComment ? 'Posting...' : 'Post'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <LessonWorkspace
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  codeLanguage={codeLanguage}
+                  codeOutput={codeOutput}
+                  codeValue={codeValue}
+                  commentDraft={commentDraft}
+                  commentsLoading={commentsLoading}
+                  currentProgress={currentProgress}
+                  detailDraft={detailDraft}
+                  isDark={isDark}
+                  notesContent={notesContent}
+                  notesSaved={notesSaved}
+                  openInterviewIndex={openInterviewIndex}
+                  selectedTask={selectedTask}
+                  setCodeLanguage={setCodeLanguage}
+                  setCodeValue={setCodeValue}
+                  setCommentDraft={setCommentDraft}
+                  setDetailDraft={setDetailDraft}
+                  setNotesContent={setNotesContent}
+                  setNotesSaved={setNotesSaved}
+                  setOpenInterviewIndex={setOpenInterviewIndex}
+                  submittingComment={submittingComment}
+                  taskComments={taskComments}
+                  textMuted={textMuted}
+                  textPrimary={textPrimary}
+                  copyCodeSample={copyCodeSample}
+                  markSelectedTaskComplete={markSelectedTaskComplete}
+                  normalizeDescription={normalizeDescription}
+                  resetCodeSample={resetCodeSample}
+                  runCodeSample={runCodeSample}
+                  saveNotes={saveNotes}
+                  submitComment={submitComment}
+                  updateSelectedTaskInline={updateSelectedTaskInline}
+                />
               </section>
 
               <aside
-                className={`${showOptionsPanel ? 'block' : 'hidden'} xl:block border-l ${borderCol} ${bgSidebar} h-full overflow-y-auto`}
+                className={`${showOptionsPanel ? 'block' : 'hidden'} border-l ${borderCol} ${bgSidebar} h-full overflow-y-auto`}
               >
                 <div className={`sticky top-0 z-10 border-b px-4 py-3 ${borderCol} ${bgSidebar}`}>
                   <div className="flex items-center justify-between gap-2 text-xs text-gray-300">
@@ -1280,6 +1328,694 @@ export default function LearningManagementPanel() {
       )}
     </div>
   );
+}
+
+function LessonWorkspace({
+  activeTab,
+  codeLanguage,
+  codeOutput,
+  codeValue,
+  commentDraft,
+  commentsLoading,
+  currentProgress,
+  detailDraft,
+  isDark,
+  notesContent,
+  notesSaved,
+  openInterviewIndex,
+  selectedTask,
+  setActiveTab,
+  setCodeLanguage,
+  setCodeValue,
+  setCommentDraft,
+  setDetailDraft,
+  setNotesContent,
+  setNotesSaved,
+  setOpenInterviewIndex,
+  submittingComment,
+  taskComments,
+  textMuted,
+  textPrimary,
+  copyCodeSample,
+  markSelectedTaskComplete,
+  normalizeDescription,
+  resetCodeSample,
+  runCodeSample,
+  saveNotes,
+  submitComment,
+  updateSelectedTaskInline,
+}: {
+  activeTab: LessonTab;
+  codeLanguage: 'javascript' | 'python';
+  codeOutput: string;
+  codeValue: string;
+  commentDraft: string;
+  commentsLoading: boolean;
+  currentProgress: number;
+  detailDraft: {
+    title: string;
+    description: string;
+    lessonSections: LessonSection[];
+    exercises: ExerciseDraft[];
+    confidenceScore: string;
+    status: LearningTask['status'];
+    priority: 'low' | 'medium' | 'high';
+    dueDate: string;
+  };
+  isDark: boolean;
+  notesContent: string;
+  notesSaved: boolean;
+  openInterviewIndex: number;
+  selectedTask: LearningTask;
+  setActiveTab: (tab: LessonTab) => void;
+  setCodeLanguage: (language: 'javascript' | 'python') => void;
+  setCodeValue: (value: string) => void;
+  setCommentDraft: (value: string) => void;
+  setDetailDraft: React.Dispatch<React.SetStateAction<{
+    title: string;
+    description: string;
+    lessonSections: LessonSection[];
+    exercises: ExerciseDraft[];
+    confidenceScore: string;
+    status: LearningTask['status'];
+    priority: 'low' | 'medium' | 'high';
+    dueDate: string;
+  }>>;
+  setNotesContent: (value: string) => void;
+  setNotesSaved: (value: boolean) => void;
+  setOpenInterviewIndex: (value: number) => void;
+  submittingComment: boolean;
+  taskComments: TaskComment[];
+  textMuted: string;
+  textPrimary: string;
+  copyCodeSample: () => void;
+  markSelectedTaskComplete: () => void;
+  normalizeDescription: (value: string) => string;
+  resetCodeSample: () => void;
+  runCodeSample: () => void;
+  saveNotes: () => void;
+  submitComment: () => void;
+  updateSelectedTaskInline: (payload: Partial<LearningTask>, options?: { skipRefetch?: boolean; skipLocalUpdate?: boolean }) => Promise<void>;
+}) {
+  const description = normalizeDescription(detailDraft.description || selectedTask.description || '');
+  const exercises = detailDraft.exercises.length ? detailDraft.exercises : [createExerciseDraft(1)];
+  const tabs: Array<{ key: LessonTab; label: string }> = [
+    { key: 'overview', label: 'Overview' },
+    { key: 'theory', label: 'Theory' },
+    { key: 'practice', label: 'Practice' },
+    { key: 'code', label: 'Code' },
+    { key: 'interview', label: 'Interview' },
+    { key: 'notes', label: 'Notes' },
+  ];
+
+  return (
+    <div className="w-full px-6 md:px-8 xl:px-9 py-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 max-w-[780px]">
+          <div className="mb-4 text-xs text-gray-500">
+            <span className="text-[#2f7cff]">Learning</span>
+            <span className="mx-2">/</span>
+            <span>Roadmap</span>
+            <span className="mx-2">/</span>
+            <span>Lesson {selectedTask.order || 1}</span>
+          </div>
+          <h1
+            contentEditable
+            suppressContentEditableWarning
+            onInput={(e) =>
+              setDetailDraft((prev) => ({
+                ...prev,
+                title: (e.currentTarget.textContent || '').trimStart(),
+              }))
+            }
+            onBlur={() => {
+              const next = detailDraft.title.trim();
+              if (next && next !== selectedTask.title) {
+                updateSelectedTaskInline({ title: next });
+              }
+            }}
+            className={`outline-none text-[34px] md:text-[40px] leading-[1.12] font-semibold tracking-[-0.01em] ${textPrimary}`}
+          >
+            {detailDraft.title}
+          </h1>
+          <p
+            contentEditable
+            suppressContentEditableWarning
+            onInput={(e) =>
+              setDetailDraft((prev) => ({
+                ...prev,
+                description: e.currentTarget.textContent || '',
+              }))
+            }
+            onBlur={() => {
+              const cleaned = normalizeDescription(detailDraft.description);
+              if (cleaned !== normalizeDescription(selectedTask.description || '')) {
+                updateSelectedTaskInline({ description: cleaned });
+              }
+            }}
+            className={`mt-3 max-w-[760px] outline-none text-[14px] leading-[1.7] ${isDark ? 'text-slate-300' : 'text-gray-600'}`}
+          >
+            {description || 'Add a short lesson description...'}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-gray-400">
+            <span>Estimated Study Time: 5-6 hrs</span>
+            <span className="flex items-center gap-2">
+              Your Progress:
+              <span className="font-semibold text-gray-200">{currentProgress}%</span>
+              <span className="h-1.5 w-32 rounded-full bg-[#1d2d49]">
+                <span className="block h-full rounded-full bg-[#2f7cff]" style={{ width: `${currentProgress}%` }} />
+              </span>
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={markSelectedTaskComplete} className="rounded-lg bg-[#2563eb] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1d4ed8]">
+            {selectedTask.status === 'completed' ? 'Mark In Progress' : 'Mark as Complete'}
+          </button>
+          <button aria-label="Bookmark lesson" className="h-9 w-9 rounded-lg border border-[#203451] text-gray-300 hover:bg-[#101d33]">□</button>
+        </div>
+      </div>
+
+      <div className="mt-6 border-y border-[#162844]">
+        <div role="tablist" aria-label="Lesson tabs" className="flex flex-wrap gap-1 py-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`rounded-lg px-3 py-2 text-xs transition ${activeTab === tab.key ? 'bg-[#10284d] text-[#60a5fa] shadow-[inset_0_-2px_0_#2f7cff]' : 'text-gray-400 hover:bg-[#0e1a30] hover:text-gray-200'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6 max-w-[980px]">
+        {activeTab === 'overview' && <OverviewTab selectedTask={selectedTask} isDark={isDark} />}
+        {activeTab === 'theory' && (
+          <TheoryTab
+            detailDraft={detailDraft}
+            isDark={isDark}
+            setDetailDraft={setDetailDraft}
+            updateSelectedTaskInline={updateSelectedTaskInline}
+          />
+        )}
+        {activeTab === 'practice' && (
+          <PracticeTab
+            detailDraft={detailDraft}
+            isDark={isDark}
+            setDetailDraft={setDetailDraft}
+            updateSelectedTaskInline={updateSelectedTaskInline}
+          />
+        )}
+        {activeTab === 'code' && (
+          <CodeTab
+            codeLanguage={codeLanguage}
+            codeOutput={codeOutput}
+            codeValue={codeValue}
+            setCodeLanguage={setCodeLanguage}
+            setCodeValue={setCodeValue}
+            copyCodeSample={copyCodeSample}
+            resetCodeSample={resetCodeSample}
+            runCodeSample={runCodeSample}
+          />
+        )}
+        {activeTab === 'interview' && (
+          <InterviewTab openInterviewIndex={openInterviewIndex} setOpenInterviewIndex={setOpenInterviewIndex} />
+        )}
+        {activeTab === 'notes' && (
+          <NotesTab
+            notesContent={notesContent}
+            notesSaved={notesSaved}
+            setNotesContent={(value) => {
+              setNotesContent(value);
+              setNotesSaved(false);
+            }}
+            saveNotes={saveNotes}
+          />
+        )}
+      </div>
+
+      <div className={`mt-8 border-t pt-6 max-w-[860px] ${isDark ? 'border-[#172945]' : 'border-gray-200'}`}>
+        <h4 className={`text-[18px] font-semibold mb-4 ${textPrimary}`}>Comments</h4>
+        <div className="space-y-3 mb-4">
+          {commentsLoading ? (
+            <p className={`text-sm ${textMuted}`}>Loading comments...</p>
+          ) : taskComments.length === 0 ? (
+            <p className={`text-sm ${textMuted}`}>No comments yet.</p>
+          ) : (
+            taskComments.map((comment) => (
+              <div key={comment._id} className={`rounded-xl border px-4 py-3 ${isDark ? 'border-[#1b2d49] bg-[#0f1a31]' : 'border-gray-200 bg-gray-50'}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className={`text-sm font-medium ${textPrimary}`}>{comment.author}</div>
+                  <div className={`text-xs ${textMuted}`}>{new Date(comment.createdAt).toLocaleString()}</div>
+                </div>
+                <p className={`mt-1 whitespace-pre-wrap text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{comment.content}</p>
+              </div>
+            ))
+          )}
+        </div>
+        <textarea
+          value={commentDraft}
+          onChange={(e) => setCommentDraft(e.target.value)}
+          rows={4}
+          placeholder="Leave a comment..."
+          className="w-full rounded-xl border border-[#223655] bg-[#0f1a31] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-[#2f7cff]"
+        />
+        <div className="mt-3 flex justify-end">
+          <button
+            onClick={submitComment}
+            disabled={submittingComment || !commentDraft.trim()}
+            className="rounded-xl bg-[#2f66df] px-4 py-2 text-sm font-semibold text-white disabled:opacity-45 hover:bg-[#2552b3] transition-colors"
+          >
+            {submittingComment ? 'Posting...' : 'Post'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OverviewTab({ selectedTask, isDark }: { selectedTask: LearningTask; isDark: boolean }) {
+  const concepts = getConceptCards(selectedTask);
+  return (
+    <div className="space-y-5">
+      <section>
+        <h3 className="mb-3 text-sm font-semibold text-gray-100">What you'll learn</h3>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {concepts.map((concept) => (
+            <div key={concept.title} className="rounded-xl border border-[#1d304d] bg-[#0c172a] p-4">
+              <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${concept.bg}`}>{concept.icon}</div>
+              <div className="text-sm font-semibold text-gray-100">{concept.title}</div>
+              <p className="mt-2 text-xs leading-5 text-gray-400">{concept.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="rounded-xl border border-[#1d304d] bg-[#0b1428] p-4">
+        <h3 className="mb-4 text-sm font-semibold text-gray-100">Lesson Roadmap</h3>
+        {['Scope in JavaScript', 'Closures Deep Dive', 'Hoisting Explained'].map((item, index) => (
+          <div key={item} className={`flex items-center justify-between border-t py-3 first:border-t-0 ${isDark ? 'border-[#172945]' : 'border-gray-200'}`}>
+            <div className="flex items-center gap-3">
+              <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${index === 0 ? 'bg-green-500/20 text-green-300' : index === 1 ? 'bg-blue-500/20 text-blue-300' : 'bg-gray-700 text-gray-400'}`}>
+                {index + 1}
+              </span>
+              <div>
+                <div className="text-sm font-medium text-gray-100">{item}</div>
+                <div className="text-xs text-gray-500">{index === 0 ? 'Completed' : index === 1 ? 'In Progress' : 'Locked'}</div>
+              </div>
+            </div>
+            <span className={`text-xs ${index === 0 ? 'text-green-300' : index === 1 ? 'text-blue-300' : 'text-gray-500'}`}>{index === 0 ? 'Completed' : index === 1 ? 'In Progress' : 'Locked'}</span>
+          </div>
+        ))}
+      </section>
+      <div className="flex justify-between">
+        <button className="rounded-lg border border-[#1d304d] px-4 py-2 text-xs text-gray-300 hover:bg-[#101d33]">Previous Lesson</button>
+        <button className="rounded-lg bg-[#2563eb] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1d4ed8]">Next Lesson</button>
+      </div>
+    </div>
+  );
+}
+
+function TheoryTab({
+  detailDraft,
+  isDark,
+  setDetailDraft,
+  updateSelectedTaskInline,
+}: {
+  detailDraft: { lessonSections: LessonSection[] };
+  isDark: boolean;
+  setDetailDraft: React.Dispatch<React.SetStateAction<any>>;
+  updateSelectedTaskInline: (payload: Partial<LearningTask>, options?: { skipRefetch?: boolean; skipLocalUpdate?: boolean }) => Promise<void>;
+}) {
+  const cards = getTheoryCards(detailDraft.lessonSections);
+  return (
+    <div className="space-y-4">
+      {cards.map((card, index) => (
+        <section key={card.title} className="grid gap-4 rounded-xl border border-[#1d304d] bg-[#0b1428] p-4 md:grid-cols-[44px_1fr_220px]">
+          <div className={`flex h-10 w-10 items-center justify-center rounded-full ${card.color}`}>{index + 1}</div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-100">{card.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-gray-400">{card.content}</p>
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-gray-500">
+              {card.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
+            </ul>
+          </div>
+          <div className="rounded-lg border border-[#244266] bg-[#0d1d35] p-3 text-xs leading-5 text-blue-200">
+            <div className="mb-1 font-semibold text-blue-300">{card.calloutTitle}</div>
+            {card.callout}
+          </div>
+        </section>
+      ))}
+      <LessonSectionsEditor
+        sections={detailDraft.lessonSections}
+        onChange={(lessonSections) => setDetailDraft((prev: any) => ({ ...prev, lessonSections }))}
+        onSave={(openNew = false) => {
+          const lessonSections = normalizeLessonSections(detailDraft.lessonSections);
+          if (detailDraft.lessonSections.length > 0 && lessonSections.length === 0) {
+            alert('Add a section title and content before saving a lesson section.');
+            return false;
+          }
+          setDetailDraft((prev: any) => ({
+            ...prev,
+            lessonSections: openNew ? [{ title: '', content: '', order: lessonSections.length + 1 }, ...lessonSections] : lessonSections,
+          }));
+          updateSelectedTaskInline({ lessonSections }, { skipRefetch: true, skipLocalUpdate: true });
+          return true;
+        }}
+      />
+    </div>
+  );
+}
+
+function PracticeTab({
+  detailDraft,
+  isDark,
+  setDetailDraft,
+  updateSelectedTaskInline,
+}: {
+  detailDraft: { exercises: ExerciseDraft[] };
+  isDark: boolean;
+  setDetailDraft: React.Dispatch<React.SetStateAction<any>>;
+  updateSelectedTaskInline: (payload: Partial<LearningTask>, options?: { skipRefetch?: boolean; skipLocalUpdate?: boolean }) => Promise<void>;
+}) {
+  const exercises = detailDraft.exercises.length ? detailDraft.exercises : [createExerciseDraft(1)];
+  return (
+    <div className="grid gap-5 xl:grid-cols-[1fr_280px]">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-gray-100">Guided Practice</h3>
+            <p className="mt-1 text-sm text-gray-500">Apply what you've learned with hands-on exercises.</p>
+          </div>
+          <div className="rounded-full border border-[#203451] px-3 py-1 text-xs text-gray-300">0/{exercises.length} completed</div>
+        </div>
+        {exercises.map((exercise, index) => (
+          <div key={index} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#1d304d] bg-[#0b1428] p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#12356d] text-sm font-semibold text-blue-200">{index + 1}</span>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-100">{exercise.prompt || ['Scope in Action', 'Closures Deep Dive', 'this & Prototypes'][index] || 'Practice Exercise'}</h4>
+                <p className="mt-1 max-w-xl text-xs leading-5 text-gray-500">{exercise.solution || 'Practice the concept with a focused exercise and note what you learn.'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`rounded-full border px-2.5 py-1 text-[11px] capitalize ${exercise.difficulty === 'hard' ? 'border-red-500/30 text-red-300' : exercise.difficulty === 'medium' ? 'border-amber-500/30 text-amber-300' : 'border-green-500/30 text-green-300'}`}>{exercise.difficulty || 'easy'}</span>
+              <button className="rounded-lg bg-[#2563eb] px-3 py-2 text-xs font-semibold text-white hover:bg-[#1d4ed8]">Start Practice</button>
+            </div>
+          </div>
+        ))}
+        <ExercisesEditor
+          exercises={detailDraft.exercises}
+          onChange={(exercises) => setDetailDraft((prev: any) => ({ ...prev, exercises }))}
+          onSave={(openNew = false, template?: ExerciseDraft) => {
+            const exercises = detailDraft.exercises.map(fromExerciseDraft).filter(Boolean) as LearningExercise[];
+            if (detailDraft.exercises.length > 0 && exercises.length === 0) {
+              alert('Add a prompt, starter code, expected output, hint, or solution before saving an exercise.');
+              return false;
+            }
+            const savedDrafts = exercises.map((exercise, index) => toExerciseDraft(exercise, index + 1));
+            setDetailDraft((prev: any) => ({
+              ...prev,
+              exercises: openNew ? [createExerciseDraft(savedDrafts.length + 1, template), ...savedDrafts] : savedDrafts,
+            }));
+            updateSelectedTaskInline({ exercises, exercise: exercises[0] }, { skipRefetch: true, skipLocalUpdate: true });
+            return true;
+          }}
+        />
+      </div>
+      <aside className="rounded-xl border border-[#1d304d] bg-[#0b1428] p-4">
+        <h3 className="text-sm font-semibold text-gray-100">Before you start</h3>
+        {['Review the theory', 'Understand the examples', 'Take notes', 'Ready to practice'].map((item, index) => (
+          <label key={item} className={`mt-4 flex items-start gap-3 border-t pt-4 text-sm ${isDark ? 'border-[#172945] text-gray-300' : 'border-gray-200 text-gray-700'}`}>
+            <input type="checkbox" defaultChecked={index < 2} className="mt-1" />
+            <span>{item}</span>
+          </label>
+        ))}
+        <div className="mt-5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-5 text-amber-200">
+          Don't rush. Focus on understanding why something works, not just how.
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function CodeTab({
+  codeLanguage,
+  codeOutput,
+  codeValue,
+  setCodeLanguage,
+  setCodeValue,
+  copyCodeSample,
+  resetCodeSample,
+  runCodeSample,
+}: {
+  codeLanguage: 'javascript' | 'python';
+  codeOutput: string;
+  codeValue: string;
+  setCodeLanguage: (language: 'javascript' | 'python') => void;
+  setCodeValue: (value: string) => void;
+  copyCodeSample: () => void;
+  resetCodeSample: () => void;
+  runCodeSample: () => void;
+}) {
+  return (
+    <div className="grid gap-5 xl:grid-cols-[1fr_240px]">
+      <div className="space-y-4">
+        <section className="rounded-xl border border-[#1d304d] bg-[#0b1428] p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-100">Problem</h3>
+            <span className="rounded-full border border-green-500/30 px-2.5 py-1 text-[11px] text-green-300">Easy</span>
+          </div>
+          <p className="text-sm leading-6 text-gray-400">Create a function that returns a counter. Each time the returned function is called, it should increment and return the count.</p>
+        </section>
+        <section className="overflow-hidden rounded-xl border border-[#1d304d] bg-[#06101f]">
+          <div className="flex items-center justify-between border-b border-[#1d304d] px-4 py-3">
+            <select value={codeLanguage} onChange={(event) => setCodeLanguage(event.target.value as 'javascript' | 'python')} className="rounded-md border border-[#203451] bg-[#0d1a2d] px-3 py-1.5 text-xs text-gray-200 outline-none">
+              <option value="javascript">JavaScript</option>
+              <option value="python">Python</option>
+            </select>
+            <button onClick={copyCodeSample} className="rounded-md border border-[#203451] px-3 py-1.5 text-xs text-gray-300 hover:bg-[#101d33]">Copy Code</button>
+          </div>
+          <textarea value={codeValue} onChange={(event) => setCodeValue(event.target.value)} rows={12} className="w-full resize-y bg-[#050b16] px-5 py-4 font-mono text-sm leading-6 text-blue-100 outline-none" spellCheck={false} />
+          <div className="flex items-center gap-2 border-t border-[#1d304d] px-4 py-3">
+            <button onClick={runCodeSample} className="rounded-lg bg-[#2563eb] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1d4ed8]">Run Code</button>
+            <button onClick={resetCodeSample} className="rounded-lg border border-[#203451] px-4 py-2 text-xs text-gray-300 hover:bg-[#101d33]">Reset</button>
+          </div>
+        </section>
+        <section className="rounded-xl border border-[#1d304d] bg-[#0b1428] p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-100">Output</h3>
+            <button className="text-xs text-gray-500" onClick={() => setCodeValue(codeValue)}>Clear</button>
+          </div>
+          <pre className="min-h-[92px] whitespace-pre-wrap rounded-lg bg-[#050b16] p-3 text-xs leading-5 text-gray-400">{codeOutput || 'Run your code to see output here...'}</pre>
+        </section>
+      </div>
+      <aside className="rounded-xl border border-[#1d304d] bg-[#0b1428] p-4">
+        <h3 className="text-sm font-semibold text-gray-100">Tips</h3>
+        <ul className="mt-3 space-y-3 text-xs leading-5 text-gray-400">
+          <li>The inner function remembers the count variable.</li>
+          <li>That's closure in action.</li>
+          <li>Each call uses preserved lexical scope.</li>
+        </ul>
+        <button className="mt-5 w-full rounded-lg border border-[#203451] px-3 py-2 text-xs text-gray-300 hover:bg-[#101d33]">Need a hint?</button>
+      </aside>
+    </div>
+  );
+}
+
+function InterviewTab({ openInterviewIndex, setOpenInterviewIndex }: { openInterviewIndex: number; setOpenInterviewIndex: (index: number) => void }) {
+  const questions = getInterviewQuestions();
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 className="text-base font-semibold text-gray-100">Interview Prep</h3>
+          <p className="mt-1 text-sm text-gray-500">High-impact questions with concise answers to help you revise.</p>
+        </div>
+        <div className="rounded-xl border border-[#1d304d] bg-[#0b1428] px-4 py-3 text-sm text-gray-300">Interview Score <span className="font-semibold text-blue-300">72/100</span></div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {['All Questions', 'Scope', 'Closures', 'Hoisting', 'This', 'Prototypes'].map((chip, index) => (
+          <button key={chip} className={`rounded-full border px-3 py-1 text-xs ${index === 0 ? 'border-[#2f7cff] bg-[#2f7cff] text-white' : 'border-[#203451] text-gray-400 hover:text-gray-200'}`}>{chip}</button>
+        ))}
+      </div>
+      {questions.map((question, index) => (
+        <div key={question.question} className="rounded-xl border border-[#1d304d] bg-[#0b1428]">
+          <button onClick={() => setOpenInterviewIndex(openInterviewIndex === index ? -1 : index)} className="flex w-full items-center justify-between px-4 py-3 text-left">
+            <span className="text-sm font-semibold text-gray-100">{index + 1}. {question.question}</span>
+            <span className="text-xs text-amber-300">{index === 0 ? 'Most Asked' : 'Open'}</span>
+          </button>
+          {openInterviewIndex === index && (
+            <div className="border-t border-[#1d304d] px-4 py-4">
+              <p className="text-sm leading-6 text-gray-400">{question.answer}</p>
+              {question.code && <pre className="mt-4 overflow-x-auto rounded-lg bg-[#050b16] p-3 font-mono text-xs leading-5 text-blue-100">{question.code}</pre>}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function NotesTab({ notesContent, notesSaved, setNotesContent, saveNotes }: { notesContent: string; notesSaved: boolean; setNotesContent: (value: string) => void; saveNotes: () => void }) {
+  return (
+    <div className="grid gap-5 xl:grid-cols-[1fr_260px]">
+      <section className="rounded-xl border border-[#1d304d] bg-[#0b1428]">
+        <div className="flex flex-wrap items-center gap-2 border-b border-[#1d304d] px-4 py-3 text-xs text-gray-400">
+          <span className="rounded border border-[#203451] px-2 py-1">Normal</span>
+          {['B', 'I', 'U', 'Code', 'List', 'Link', 'Quote'].map((tool) => <button key={tool} className="rounded px-2 py-1 hover:bg-[#101d33]">{tool}</button>)}
+        </div>
+        <textarea value={notesContent} onChange={(event) => setNotesContent(event.target.value)} rows={16} className="w-full resize-y bg-transparent px-5 py-4 text-sm leading-7 text-gray-200 outline-none" />
+        <div className="flex items-center justify-between border-t border-[#1d304d] px-4 py-3 text-xs text-gray-500">
+          <span>{notesSaved ? 'Saved just now' : 'Auto-save ready'}</span>
+          <button onClick={saveNotes} className="rounded-lg bg-[#2563eb] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1d4ed8]">Save Notes</button>
+        </div>
+      </section>
+      <aside className="space-y-4">
+        <div className="rounded-xl border border-[#1d304d] bg-[#0b1428] p-4">
+          <h3 className="text-sm font-semibold text-gray-100">Quick Summary</h3>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-xs leading-5 text-gray-400">
+            <li>Scope: variable accessibility</li>
+            <li>Closures: preserving state</li>
+            <li>Hoisting: declaration lifting</li>
+            <li>this: context based invocation</li>
+          </ul>
+        </div>
+        <div className="rounded-xl border border-[#1d304d] bg-[#0b1428] p-4">
+          <h3 className="text-sm font-semibold text-gray-100">Revision Points</h3>
+          <ul className="mt-3 space-y-2 text-xs text-gray-400">
+            {['Scope chain & lexical environment', 'Closures with real examples', 'Hoisting in variables & functions', 'Prototypes & prototype chain'].map((item) => <li key={item}>○ {item}</li>)}
+          </ul>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+const DEFAULT_CODE_SAMPLE = `function createCounter() {
+  let count = 0;
+
+  return function () {
+    count = count + 1;
+    return count;
+  };
+}
+
+const counter = createCounter();
+console.log(counter());
+console.log(counter());`;
+
+function buildDefaultNotes(task: LearningTask) {
+  return `Understanding the core concepts
+
+${task.description || 'Add your personal study notes here.'}
+
+Key Takeaways:
+- Write down the most important idea.
+- Add confusing points or doubts.
+- Connect this lesson to a real project file.
+
+Examples to revisit:
+- Add one example after practice.`;
+}
+
+function getConceptCards(task: LearningTask) {
+  const sourceSections = task.lessonSections?.slice().sort((a, b) => a.order - b.order) || [];
+  const fallback = [
+    { title: 'Scope', text: 'Understand global, function, and block scope with practical examples.', icon: '◎', bg: 'bg-blue-500/20 text-blue-300' },
+    { title: 'Closures', text: 'Learn how closures work and how they preserve lexical scope.', icon: '▣', bg: 'bg-green-500/20 text-green-300' },
+    { title: 'Hoisting', text: 'Understand variable and function hoisting with real code behavior.', icon: '↑', bg: 'bg-purple-500/20 text-purple-300' },
+    { title: 'this', text: 'Understand how this changes based on context and how to control it.', icon: 'this', bg: 'bg-amber-500/20 text-amber-300' },
+    { title: 'Prototypes', text: 'Explore prototypes, prototype chain, and inheritance.', icon: '◇', bg: 'bg-teal-500/20 text-teal-300' },
+  ];
+
+  if (!sourceSections.length) return fallback;
+  return sourceSections.slice(0, 5).map((section, index) => ({
+    title: section.title,
+    text: section.content,
+    icon: ['◎', '▣', '↑', 'this', '◇'][index] || '•',
+    bg: ['bg-blue-500/20 text-blue-300', 'bg-green-500/20 text-green-300', 'bg-purple-500/20 text-purple-300', 'bg-amber-500/20 text-amber-300', 'bg-teal-500/20 text-teal-300'][index] || 'bg-blue-500/20 text-blue-300',
+  }));
+}
+
+function getTheoryCards(sections: LessonSection[]) {
+  const fallback = [
+    {
+      title: 'Execution Context',
+      content: 'Every JavaScript code runs inside an execution context. It has a creation phase and an execution phase.',
+      bullets: ['Creation phase allocates memory and initializes variables.', 'Execution phase runs code line by line.'],
+      calloutTitle: 'Key Takeaway',
+      callout: 'Everything in JavaScript happens inside an execution context.',
+      color: 'bg-blue-500/20 text-blue-300',
+    },
+    {
+      title: 'Scope Chain',
+      content: 'JavaScript uses lexical scoping. If a variable is not found locally, JavaScript looks outward.',
+      bullets: ['Local scope -> Outer scope -> Global scope'],
+      calloutTitle: 'Remember',
+      callout: 'JavaScript looks outward, never inward.',
+      color: 'bg-green-500/20 text-green-300',
+    },
+    {
+      title: 'Closures',
+      content: 'A closure is a function that remembers variables from its lexical scope even after the outer function finishes.',
+      bullets: ['Useful for data privacy and state preservation.'],
+      calloutTitle: 'Key Takeaway',
+      callout: 'Closures let functions remember their environment.',
+      color: 'bg-purple-500/20 text-purple-300',
+    },
+    {
+      title: 'Hoisting',
+      content: 'Declarations are processed before execution. var, let, const, and functions behave differently.',
+      bullets: ['var is hoisted and initialized with undefined.', 'let and const are hoisted but not initialized.'],
+      calloutTitle: 'Watch Out',
+      callout: 'Accessing let/const before declaration throws an error.',
+      color: 'bg-amber-500/20 text-amber-300',
+    },
+    {
+      title: 'Prototypes',
+      content: 'Every JavaScript object has a prototype. Prototypes allow objects to inherit properties and methods.',
+      bullets: ['Backbone of inheritance in JavaScript.'],
+      calloutTitle: 'Key Takeaway',
+      callout: 'Prototypes enable reuse and power inheritance.',
+      color: 'bg-teal-500/20 text-teal-300',
+    },
+  ];
+
+  if (!sections.length) return fallback;
+  return sections.slice().sort((a, b) => a.order - b.order).map((section, index) => ({
+    title: section.title,
+    content: section.content,
+    bullets: [section.content.length > 160 ? section.content.slice(0, 160) : section.content],
+    calloutTitle: 'Key Takeaway',
+    callout: 'Connect this concept to your current project before moving on.',
+    color: ['bg-blue-500/20 text-blue-300', 'bg-green-500/20 text-green-300', 'bg-purple-500/20 text-purple-300', 'bg-amber-500/20 text-amber-300', 'bg-teal-500/20 text-teal-300'][index] || 'bg-blue-500/20 text-blue-300',
+  }));
+}
+
+function getInterviewQuestions() {
+  return [
+    {
+      question: 'What is a closure in JavaScript?',
+      answer: 'A closure is the combination of a function bundled together with references to its surrounding state. It allows a function to access variables from an outer function even after the outer function has finished executing.',
+      code: `function outer(x) {
+  return function inner(y) {
+    return x + y;
+  };
+}
+
+const add = outer(5);
+add(3); // 8`,
+    },
+    { question: 'How does JavaScript handle variable scope?', answer: 'JavaScript uses lexical scope, so variable lookup follows where functions are written, not where they are called.' },
+    { question: 'What is the difference between == and ===?', answer: '== allows type coercion before comparison, while === compares both value and type.' },
+    { question: 'Explain hoisting in JavaScript.', answer: 'Hoisting is JavaScript behavior where declarations are processed before execution. var is initialized as undefined, while let and const remain in the temporal dead zone.' },
+    { question: 'What does the this keyword refer to?', answer: 'this depends on call site and binding rules, such as method call, explicit binding, constructor call, or lexical binding with arrow functions.' },
+    { question: 'What are prototypes in JavaScript?', answer: 'Prototypes are objects used for property lookup and inheritance. Objects can access behavior from their prototype chain.' },
+  ];
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
