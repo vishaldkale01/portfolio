@@ -47,7 +47,7 @@ export interface LearningTask {
     phaseId?: string;
     dueDate?: string;
     notes?: LearningTaskNote[];
-    status: 'pending' | 'in-progress' | 'completed';
+    status: 'pending' | 'not-started' | 'in-progress' | 'learning' | 'practiced' | 'revised' | 'completed';
     completedAt?: string;
     totalTimeSpent: number;
     createdAt: string;

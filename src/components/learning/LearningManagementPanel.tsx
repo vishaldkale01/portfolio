@@ -1,8 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { LearningExercise, LearningPlan, LearningTask, LessonSection, Phase, PlanDetail as PlanDetailType, TaskComment, commentApi, learningApi } from '../../utils/learningApi';
 import { useTheme } from '../../context/ThemeContext';
 
 type LessonTab = 'overview' | 'theory' | 'practice' | 'code' | 'interview' | 'notes';
+const TASK_STATUS_OPTIONS: Array<{ value: LearningTask['status']; label: string }> = [
+  { value: 'not-started', label: 'Not Started' },
+  { value: 'learning', label: 'Learning' },
+  { value: 'practiced', label: 'Practiced' },
+  { value: 'revised', label: 'Revised' },
+  { value: 'completed', label: 'Completed' },
+];
 
 export default function LearningManagementPanel() {
   useTheme();
@@ -44,7 +53,7 @@ export default function LearningManagementPanel() {
   const [phaseImporting, setPhaseImporting] = useState(false);
   const [showPhasePrompt, setShowPhasePrompt] = useState(false);
   const [taskRows, setTaskRows] = useState<Array<{ title: string; description: string; status: LearningTask['status']; priority: 'low' | 'medium' | 'high'; dueDate: string; phaseId: string }>>([
-    { title: '', description: '', status: 'pending', priority: 'medium', dueDate: '', phaseId: '' },
+    { title: '', description: '', status: 'not-started', priority: 'medium', dueDate: '', phaseId: '' },
   ]);
   const [detailDraft, setDetailDraft] = useState({
     title: '',
@@ -52,7 +61,7 @@ export default function LearningManagementPanel() {
     lessonSections: [] as LessonSection[],
     exercises: [] as ExerciseDraft[],
     confidenceScore: '',
-    status: 'pending' as LearningTask['status'],
+    status: 'not-started' as LearningTask['status'],
     priority: 'medium' as 'low' | 'medium' | 'high',
     dueDate: '',
   });
@@ -147,6 +156,19 @@ export default function LearningManagementPanel() {
     return Math.round((tasks.filter((task) => task.status === 'completed').length / tasks.length) * 100);
   }, [tasks]);
 
+  const dashboardStats = useMemo(() => {
+    const normalized = (status: LearningTask['status']) => (status === 'pending' ? 'not-started' : status);
+    const todayTopic = tasks.find((task) => !['completed', 'revised'].includes(normalized(task.status))) || tasks[0] || null;
+    return {
+      activePlan: selectedPlan?.plan.title || 'No active plan',
+      todayTopic,
+      pending: tasks.filter((task) => normalized(task.status) === 'not-started' || normalized(task.status) === 'learning').length,
+      completed: tasks.filter((task) => task.status === 'completed').length,
+      practicePending: tasks.filter((task) => ['not-started', 'learning', 'pending'].includes(task.status)).length,
+      revisionPending: tasks.filter((task) => task.status === 'practiced').length,
+    };
+  }, [selectedPlan, tasks]);
+
   useEffect(() => {
     const loadCommentsAndDraft = async () => {
       if (!selectedTask) {
@@ -159,7 +181,7 @@ export default function LearningManagementPanel() {
         description: selectedTask.description || '',
         lessonSections: selectedTask.lessonSections || buildLegacyLessonSections(selectedTask),
         exercises: toExerciseDrafts(selectedTask),
-        confidenceScore: typeof selectedTask.confidenceScore === 'number' ? String(selectedTask.confidenceScore) : '',
+        confidenceScore: typeof selectedTask.confidenceScore === 'number' ? String(Math.min(5, Math.max(1, Math.round(selectedTask.confidenceScore)))) : '',
         status: selectedTask.status,
         priority: selectedTask.priority || 'medium',
         dueDate: selectedTask.dueDate ? new Date(selectedTask.dueDate).toISOString().slice(0, 10) : '',
@@ -325,7 +347,7 @@ export default function LearningManagementPanel() {
             order: task.order || taskIndex + 1,
             phaseId: phaseResponse.data!._id,
             planId: planResponse.data!._id,
-            status: task.status || 'pending',
+            status: task.status || 'not-started',
             priority: task.priority || 'medium',
           }),
         ),
@@ -417,7 +439,7 @@ export default function LearningManagementPanel() {
 
   const markSelectedTaskComplete = async () => {
     if (!selectedTask) return;
-    const nextStatus: LearningTask['status'] = selectedTask.status === 'completed' ? 'in-progress' : 'completed';
+    const nextStatus: LearningTask['status'] = selectedTask.status === 'completed' ? 'learning' : 'completed';
     setDetailDraft((prev) => ({ ...prev, status: nextStatus }));
     await updateSelectedTaskInline({ status: nextStatus });
   };
@@ -469,7 +491,7 @@ export default function LearningManagementPanel() {
         }),
       ),
     );
-    setTaskRows([{ title: '', description: '', status: 'pending', priority: 'medium', dueDate: '', phaseId: selectedPlan.phases[0]?._id || '' }]);
+    setTaskRows([{ title: '', description: '', status: 'not-started', priority: 'medium', dueDate: '', phaseId: selectedPlan.phases[0]?._id || '' }]);
     setShowAddTask(false);
     await fetchPlanDetail(selectedPlan.plan._id);
   };
@@ -547,7 +569,7 @@ export default function LearningManagementPanel() {
           order: index + 1,
           phaseId: phaseResponse.data!._id,
           planId: selectedPlan.plan._id,
-          status: task.status || 'pending',
+          status: task.status || 'not-started',
           priority: task.priority || 'medium',
         }),
       ),
@@ -604,7 +626,9 @@ export default function LearningManagementPanel() {
 
   const getTaskProgress = (status: LearningTask['status']) => {
     if (status === 'completed') return 100;
-    if (status === 'in-progress') return 50;
+    if (status === 'revised') return 85;
+    if (status === 'practiced') return 65;
+    if (status === 'in-progress' || status === 'learning') return 35;
     return 0;
   };
 
@@ -823,6 +847,14 @@ export default function LearningManagementPanel() {
                     >
                       {selectedPlan.plan.isPublic === false ? 'Hidden from users' : 'Visible to users'}
                     </button>
+                    <a
+                      href={`/portfolio/learning/${selectedPlan.plan._id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex h-7 items-center rounded border border-[#2a3b57] px-3 text-xs text-blue-200 hover:bg-[#12213b]"
+                    >
+                      Preview public
+                    </a>
                     <button
                       onClick={deleteSelectedPlan}
                       className="h-7 px-3 rounded border border-red-500/35 bg-red-500/10 text-xs text-red-200 hover:bg-red-500/15"
@@ -837,6 +869,14 @@ export default function LearningManagementPanel() {
                 {selectedPlan?.plan.description && (
                   <div className={`px-4 pb-3 text-sm ${textMuted}`}>{selectedPlan.plan.description}</div>
                 )}
+                <div className="grid gap-3 px-4 pb-4 md:grid-cols-2 xl:grid-cols-6">
+                  <AdminMetricCard label="Active Plan" value={dashboardStats.activePlan} className="xl:col-span-2" />
+                  <AdminMetricCard label="Today's Topic" value={dashboardStats.todayTopic?.title || 'No topic selected'} className="xl:col-span-2" />
+                  <AdminMetricCard label="Pending Topics" value={String(dashboardStats.pending)} />
+                  <AdminMetricCard label="Completed" value={String(dashboardStats.completed)} />
+                  <AdminMetricCard label="Practice Pending" value={String(dashboardStats.practicePending)} />
+                  <AdminMetricCard label="Revision Pending" value={String(dashboardStats.revisionPending)} />
+                </div>
                 {showAddPhase && (
                   <div className={`mx-4 mb-3 rounded-lg border p-3 ${isDark ? 'border-[#1b2c49] bg-[#0b1429]' : 'border-gray-200 bg-white'} space-y-2`}>
                     <input
@@ -960,7 +1000,9 @@ export default function LearningManagementPanel() {
                             ))}
                         </select>
                         <div className="grid grid-cols-3 gap-2">
-                          <select value={row.status} onChange={(e) => setTaskRows((prev) => prev.map((item, i) => (i === idx ? { ...item, status: e.target.value as LearningTask['status'] } : item)))} className="rounded-md border border-[#2a3b57] bg-[#1b2a42] px-2 py-1 text-xs text-gray-100"><option value="pending">Pending</option><option value="in-progress">In Progress</option><option value="completed">Completed</option></select>
+                          <select value={row.status === 'pending' ? 'not-started' : row.status} onChange={(e) => setTaskRows((prev) => prev.map((item, i) => (i === idx ? { ...item, status: e.target.value as LearningTask['status'] } : item)))} className="rounded-md border border-[#2a3b57] bg-[#1b2a42] px-2 py-1 text-xs text-gray-100">
+                            {TASK_STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                          </select>
                           <select value={row.priority} onChange={(e) => setTaskRows((prev) => prev.map((item, i) => (i === idx ? { ...item, priority: e.target.value as 'low' | 'medium' | 'high' } : item)))} className="rounded-md border border-[#2a3b57] bg-[#1b2a42] px-2 py-1 text-xs text-gray-100"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
                           <input type="date" value={row.dueDate} onChange={(e) => setTaskRows((prev) => prev.map((item, i) => (i === idx ? { ...item, dueDate: e.target.value } : item)))} className="rounded-md border border-[#2a3b57] bg-[#1b2a42] px-2 py-1 text-xs text-gray-100" />
                         </div>
@@ -968,7 +1010,7 @@ export default function LearningManagementPanel() {
                     ))}
                     <div className="flex justify-end gap-2">
                       <button
-                        onClick={() => setTaskRows((prev) => [...prev, { title: '', description: '', status: 'pending', priority: 'medium', dueDate: '', phaseId: selectedPlan.phases[0]?._id || '' }])}
+                        onClick={() => setTaskRows((prev) => [...prev, { title: '', description: '', status: 'not-started', priority: 'medium', dueDate: '', phaseId: selectedPlan.phases[0]?._id || '' }])}
                         className="px-2 py-1 text-xs text-blue-300"
                       >
                         + Row
@@ -1059,14 +1101,12 @@ export default function LearningManagementPanel() {
                       >
                         <div className="flex items-center gap-2">
                           <select
-                            value={task.status}
+                            value={task.status === 'pending' ? 'not-started' : task.status}
                             onClick={(e) => e.stopPropagation()}
                             onChange={(e) => updateTaskInlineById(task._id, { status: e.target.value as LearningTask['status'] })}
                             className="rounded-md border border-[#2a3b57] bg-[#1b2a42] px-2 py-1 text-[11px] text-gray-200 outline-none"
                           >
-                            <option value="pending">Pending</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
+                            {TASK_STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                           </select>
                         </div>
 
@@ -1218,7 +1258,7 @@ export default function LearningManagementPanel() {
 
                   <Field label="Status">
                     <select
-                      value={detailDraft.status}
+                      value={detailDraft.status === 'pending' ? 'not-started' : detailDraft.status}
                       onChange={(e) => {
                         const status = e.target.value as LearningTask['status'];
                         setDetailDraft((prev) => ({ ...prev, status }));
@@ -1226,9 +1266,7 @@ export default function LearningManagementPanel() {
                       }}
                       className="w-full input-dark"
                     >
-                      <option value="pending">Pending</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
+                      {TASK_STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                     </select>
                   </Field>
 
@@ -1264,8 +1302,8 @@ export default function LearningManagementPanel() {
                   <Field label="Confidence Score">
                     <input
                       type="number"
-                      min="0"
-                      max="10"
+                      min="1"
+                      max="5"
                       value={detailDraft.confidenceScore}
                       onChange={(e) => setDetailDraft((prev) => ({ ...prev, confidenceScore: e.target.value }))}
                       onBlur={() =>
@@ -1653,6 +1691,13 @@ function TheoryTab({
   const cards = getTheoryCards(detailDraft.lessonSections);
   return (
     <div className="space-y-4">
+      <SimpleLearningMaterialEditor
+        sections={detailDraft.lessonSections}
+        onSave={(lessonSections) => {
+          setDetailDraft((prev: any) => ({ ...prev, lessonSections }));
+          updateSelectedTaskInline({ lessonSections }, { skipRefetch: true, skipLocalUpdate: true });
+        }}
+      />
       {cards.map((card, index) => (
         <section key={card.title} className="grid gap-4 rounded-xl border border-[#1d304d] bg-[#0b1428] p-4 md:grid-cols-[44px_1fr_220px]">
           <div className={`flex h-10 w-10 items-center justify-center rounded-full ${card.color}`}>{index + 1}</div>
@@ -1687,6 +1732,95 @@ function TheoryTab({
         }}
       />
     </div>
+  );
+}
+
+function SimpleLearningMaterialEditor({
+  onSave,
+  sections,
+}: {
+  onSave: (sections: LessonSection[]) => void;
+  sections: LessonSection[];
+}) {
+  const getSectionContent = (pattern: RegExp) => sections.find((section) => pattern.test(section.title))?.content || '';
+  const [concept, setConcept] = useState(() => getSectionContent(/concept|theory|learn/i));
+  const [practiceGoal, setPracticeGoal] = useState(() => getSectionContent(/practice|goal|exercise/i));
+  const [projectConnection, setProjectConnection] = useState(() => getSectionContent(/project|connection|real/i));
+
+  useEffect(() => {
+    setConcept(getSectionContent(/concept|theory|learn/i));
+    setPracticeGoal(getSectionContent(/practice|goal|exercise/i));
+    setProjectConnection(getSectionContent(/project|connection|real/i));
+  }, [sections]);
+
+  const saveSimpleMaterial = () => {
+    const simpleSections: LessonSection[] = [
+      { title: 'Concept', content: concept.trim(), order: 1 },
+      { title: 'Practice Goal', content: practiceGoal.trim(), order: 2 },
+      { title: 'Project Connection', content: projectConnection.trim(), order: 3 },
+    ].filter((section) => section.content);
+
+    const remainingSections = sections.filter((section) => !/concept|theory|learn|practice|goal|exercise|project|connection|real/i.test(section.title));
+    const nextSections = normalizeLessonSections([...simpleSections, ...remainingSections.map((section, index) => ({ ...section, order: simpleSections.length + index + 1 }))]);
+
+    if (nextSections.length === 0) {
+      alert('Add at least one learning material field before saving.');
+      return;
+    }
+
+    onSave(nextSections);
+  };
+
+  return (
+    <section className="rounded-xl border border-blue-500/25 bg-[#0b1429] p-4 shadow-[0_16px_50px_rgba(37,99,235,0.08)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-xs uppercase tracking-[0.16em] text-blue-300">Simple learning material</div>
+          <p className="mt-1 max-w-2xl text-sm text-gray-400">
+            Add the three fields learners need first. Advanced sections can still be edited below.
+          </p>
+        </div>
+        <button
+          onClick={saveSimpleMaterial}
+          className="rounded-lg bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1d4ed8]"
+        >
+          Save material
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-3 xl:grid-cols-3">
+        <label className="block">
+          <span className="text-sm font-semibold text-gray-200">Concept</span>
+          <textarea
+            value={concept}
+            onChange={(event) => setConcept(event.target.value)}
+            rows={5}
+            placeholder="Explain the concept in simple language..."
+            className="mt-2 w-full resize-y rounded-lg border border-[#2a3b57] bg-[#111d31] px-3 py-2 text-sm leading-6 text-gray-100 outline-none focus:border-blue-500"
+          />
+        </label>
+        <label className="block">
+          <span className="text-sm font-semibold text-gray-200">Practice Goal</span>
+          <textarea
+            value={practiceGoal}
+            onChange={(event) => setPracticeGoal(event.target.value)}
+            rows={5}
+            placeholder="What should the learner build, debug, or explain?"
+            className="mt-2 w-full resize-y rounded-lg border border-[#2a3b57] bg-[#111d31] px-3 py-2 text-sm leading-6 text-gray-100 outline-none focus:border-blue-500"
+          />
+        </label>
+        <label className="block">
+          <span className="text-sm font-semibold text-gray-200">Project Connection</span>
+          <textarea
+            value={projectConnection}
+            onChange={(event) => setProjectConnection(event.target.value)}
+            rows={5}
+            placeholder="Connect this lesson to a real project or bug..."
+            className="mt-2 w-full resize-y rounded-lg border border-[#2a3b57] bg-[#111d31] px-3 py-2 text-sm leading-6 text-gray-100 outline-none focus:border-blue-500"
+          />
+        </label>
+      </div>
+    </section>
   );
 }
 
@@ -2124,7 +2258,7 @@ function normalizePhaseImportTask(value: unknown, index: number): PhaseImportTas
   const title = typeof task.title === 'string' ? task.title.trim() : '';
   if (!title) return { error: `Task ${index + 1} is missing title.` };
 
-  const status = isTaskStatus(task.status) ? task.status : 'pending';
+  const status = isTaskStatus(task.status) ? task.status : 'not-started';
   const priority = isTaskPriority(task.priority) ? task.priority : 'medium';
   const lessonSections = Array.isArray(task.lessonSections)
     ? normalizeLessonSections(task.lessonSections as LessonSection[])
@@ -2144,7 +2278,7 @@ function normalizePhaseImportTask(value: unknown, index: number): PhaseImportTas
     exercise: exercises[0],
     resources: Array.isArray(task.resources) ? task.resources.filter((item): item is string => typeof item === 'string' && item.trim()) : [],
     flashcards: Array.isArray(task.flashcards) ? normalizeFlashcards(task.flashcards) : [],
-    confidenceScore: Number.isFinite(Number(task.confidenceScore)) ? Number(task.confidenceScore) : undefined,
+    confidenceScore: Number.isFinite(Number(task.confidenceScore)) ? Math.min(5, Math.max(1, Math.round(Number(task.confidenceScore)))) : undefined,
     status,
     priority,
     dueDate: typeof task.dueDate === 'string' ? task.dueDate : undefined,
@@ -2196,7 +2330,7 @@ function normalizeFlashcards(values: unknown[]) {
 }
 
 function isTaskStatus(value: unknown): value is LearningTask['status'] {
-  return value === 'pending' || value === 'in-progress' || value === 'completed';
+  return value === 'pending' || value === 'not-started' || value === 'in-progress' || value === 'learning' || value === 'practiced' || value === 'revised' || value === 'completed';
 }
 
 function isTaskPriority(value: unknown): value is 'low' | 'medium' | 'high' {
@@ -2230,7 +2364,7 @@ The JSON must match this shape:
       "title": "Task title",
       "description": "Short overview",
       "priority": "medium",
-      "status": "pending",
+      "status": "not-started",
       "lessonSections": [
         { "title": "Concept", "content": "What to learn", "order": 1 },
         { "title": "Practice Goal", "content": "What to do", "order": 2 },
@@ -2284,7 +2418,7 @@ The JSON must match this shape:
           "title": "Task title",
           "description": "Short overview",
           "priority": "medium",
-          "status": "pending",
+          "status": "not-started",
           "lessonSections": [
             { "title": "Concept", "content": "What to learn", "order": 1 },
             { "title": "Practice Goal", "content": "What to do", "order": 2 },
@@ -2318,7 +2452,7 @@ Rules:
 - Create 3 to 7 tasks per phase.
 - Use generic learning fields, not app-specific IDs.
 - Supported plan status: active, completed, paused, archived.
-- Supported task status: pending, in-progress, completed.
+- Supported task status: not-started, learning, practiced, revised, completed.
 - Supported priority: low, medium, high.
 - Supported exercise types: coding, reading, quiz, project, debugging.
 - Supported coding languages: javascript, python.
@@ -2679,6 +2813,15 @@ function MetaRow({ label, value, isDark }: { label: string; value: string; isDar
     <div>
       <div className="uppercase tracking-[0.12em] text-gray-500">{label}</div>
       <div className={`mt-0.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{value}</div>
+    </div>
+  );
+}
+
+function AdminMetricCard({ className = '', label, value }: { className?: string; label: string; value: string }) {
+  return (
+    <div className={`min-w-0 rounded-xl border border-[#1b2c49] bg-[#0b1429] px-4 py-3 ${className}`}>
+      <div className="text-[11px] uppercase tracking-[0.14em] text-gray-500">{label}</div>
+      <div className="mt-1 truncate text-sm font-semibold text-gray-100">{value}</div>
     </div>
   );
 }

@@ -11,8 +11,18 @@ const formatDuration = (seconds = 0) => {
 
 const statusProgress = (status: LearningTask['status']) => {
   if (status === 'completed') return 100;
-  if (status === 'in-progress') return 50;
+  if (status === 'revised') return 85;
+  if (status === 'practiced') return 65;
+  if (status === 'in-progress' || status === 'learning') return 35;
   return 0;
+};
+
+const formatTopicStatus = (status: LearningTask['status']) => {
+  if (status === 'pending' || status === 'not-started') return 'Not Started';
+  if (status === 'in-progress' || status === 'learning') return 'Learning';
+  if (status === 'practiced') return 'Practiced';
+  if (status === 'revised') return 'Revised';
+  return 'Completed';
 };
 
 const getTaskSummary = (task: LearningTask) =>
@@ -159,8 +169,8 @@ export default function PlanDetail() {
                     >
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={`rounded-full border px-2 py-0.5 text-[11px] capitalize ${theme === 'dark' ? 'border-gray-700 text-gray-300' : 'border-gray-300 text-gray-700'}`}>{task.status}</span>
-                          {typeof task.confidenceScore === 'number' && <span className="text-[11px] text-blue-400">Confidence {task.confidenceScore}/10</span>}
+                          <span className={`rounded-full border px-2 py-0.5 text-[11px] capitalize ${theme === 'dark' ? 'border-gray-700 text-gray-300' : 'border-gray-300 text-gray-700'}`}>{formatTopicStatus(task.status)}</span>
+                          {typeof task.confidenceScore === 'number' && <span className="text-[11px] text-blue-400">Confidence {Math.min(5, Math.max(1, Math.round(task.confidenceScore)))}/5</span>}
                         </div>
                         <h3 className="mt-2 text-base font-semibold">{task.title}</h3>
                         <p className={`mt-1 line-clamp-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{getTaskSummary(task)}</p>

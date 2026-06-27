@@ -6,7 +6,7 @@
   "homepage": "https://vishalkale.github.io/portfolio/",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/copy-404.mjs",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 50",
     "preview": "vite preview"
   },

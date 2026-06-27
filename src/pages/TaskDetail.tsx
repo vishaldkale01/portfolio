@@ -6,7 +6,7 @@ import { useAdmin } from '../context/AdminContext';
 import { LearningExercise, LearningTask, TaskComment, commentApi, learningApi, timeApi } from '../utils/learningApi';
 
 type ActiveTimerResponse = { activeTimer: unknown | null };
-type PracticeTab = 'instructions' | 'code' | 'hints' | 'explanation' | 'review';
+type PracticeTab = 'learn' | 'practice' | 'reflect';
 
 const DEFAULT_CODE_EXERCISE: LearningExercise = {
   type: 'coding',
@@ -71,7 +71,7 @@ export default function TaskDetail() {
   const [phaseTitle, setPhaseTitle] = useState('JavaScript Fundamentals');
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [activeTimer, setActiveTimer] = useState<unknown | null>(null);
-  const [activeTab, setActiveTab] = useState<PracticeTab>('instructions');
+  const [activeTab, setActiveTab] = useState<PracticeTab>('learn');
   const [newComment, setNewComment] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -82,7 +82,7 @@ export default function TaskDetail() {
     projectConnection: '',
     doubts: '',
     notes: '',
-    confidenceScore: '6',
+    confidenceScore: '3',
   });
 
   const currentIndex = allTasks.findIndex((item) => item._id === taskId);
@@ -157,7 +157,7 @@ export default function TaskDetail() {
         lessonSummary: sections[0]?.content || currentTask.description || '',
         practiceSummary: taskExercises[0]?.prompt || DEFAULT_CODE_EXERCISE.prompt,
         projectConnection: sections.find((section) => section.title.toLowerCase().includes('project'))?.content || '',
-        confidenceScore: String(currentTask.confidenceScore ?? 6),
+        confidenceScore: String(Math.min(5, Math.max(1, Math.round(currentTask.confidenceScore ?? 3)))),
       }));
     }
 
@@ -249,12 +249,10 @@ export default function TaskDetail() {
           <PracticeTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
           <section className="rounded-2xl border border-slate-700/40 bg-[#0b1628]/90 p-4 shadow-[0_18px_70px_rgba(0,0,0,0.25)]">
-            {activeTab === 'instructions' && <InstructionsTab lessonSections={lessonSections} />}
-            {activeTab === 'code' && <CodePracticeTab task={task} exercise={primaryExercise} isAuthenticated={isAuthenticated} />}
-            {activeTab === 'hints' && <HintsTab exercise={primaryExercise} />}
-            {activeTab === 'explanation' && <ExplanationTab lessonSections={lessonSections} exercise={primaryExercise} />}
-            {activeTab === 'review' && (
-              <ReviewTab
+            {activeTab === 'learn' && <LearnTab lessonSections={lessonSections} exercise={primaryExercise} />}
+            {activeTab === 'practice' && <PracticeWorkTab task={task} exercise={primaryExercise} isAuthenticated={isAuthenticated} />}
+            {activeTab === 'reflect' && (
+              <ReflectTab
                 comments={comments}
                 handleAddComment={handleAddComment}
                 isAuthenticated={isAuthenticated}
@@ -273,7 +271,7 @@ export default function TaskDetail() {
               disabled={!hasPrevious}
               className="rounded-xl border border-slate-700/60 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800/70 disabled:opacity-40"
             >
-              Previous Lesson
+              Previous Topic
             </button>
             <div className="flex min-w-[220px] items-center gap-3 text-xs text-slate-400">
               <span>Lesson Progress</span>
@@ -287,7 +285,7 @@ export default function TaskDetail() {
               disabled={!hasNext}
               className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-40"
             >
-              Next Lesson
+              Next Topic
             </button>
           </div>
         </main>
@@ -451,8 +449,10 @@ function PracticeHeaderCard({
             disabled={!isAuthenticated}
             className="mt-3 w-full rounded-xl border border-slate-700/60 bg-slate-900/80 px-3 py-2 text-sm text-white outline-none disabled:opacity-60"
           >
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
+            <option value="not-started">Not Started</option>
+            <option value="learning">Learning</option>
+            <option value="practiced">Practiced</option>
+            <option value="revised">Revised</option>
             <option value="completed">Completed</option>
           </select>
           <div className="mt-4 text-xs text-slate-500">Editable by admin only</div>
@@ -467,11 +467,9 @@ function PracticeHeaderCard({
 
 function PracticeTabs({ activeTab, setActiveTab }: { activeTab: PracticeTab; setActiveTab: (tab: PracticeTab) => void }) {
   const tabs: Array<{ key: PracticeTab; label: string }> = [
-    { key: 'instructions', label: 'Instructions' },
-    { key: 'code', label: 'Code Practice' },
-    { key: 'hints', label: 'Hints' },
-    { key: 'explanation', label: 'Explanation' },
-    { key: 'review', label: 'Review' },
+    { key: 'learn', label: '1. Learn Concept' },
+    { key: 'practice', label: '2. Practice Task' },
+    { key: 'reflect', label: '3. Reflect & Log' },
   ];
 
   return (
@@ -489,6 +487,59 @@ function PracticeTabs({ activeTab, setActiveTab }: { activeTab: PracticeTab; set
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+function LearnTab({ exercise, lessonSections }: { exercise: LearningExercise; lessonSections: Array<{ title: string; content: string; order: number }> }) {
+  return (
+    <div className="space-y-4">
+      <InstructionsTab lessonSections={lessonSections} />
+      <ExplanationTab lessonSections={lessonSections} exercise={exercise} />
+    </div>
+  );
+}
+
+function PracticeWorkTab({ exercise, isAuthenticated, task }: { exercise: LearningExercise; isAuthenticated: boolean; task: LearningTask }) {
+  return (
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <CodePracticeTab task={task} exercise={exercise} isAuthenticated={isAuthenticated} />
+      <HintsTab exercise={exercise} />
+    </div>
+  );
+}
+
+function ReflectTab(props: {
+  authorName: string;
+  comments: TaskComment[];
+  handleAddComment: (event: React.FormEvent) => void;
+  isAuthenticated: boolean;
+  newComment: string;
+  setAuthorName: (value: string) => void;
+  setNewComment: (value: string) => void;
+  submitting: boolean;
+}) {
+  return (
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+      <ReviewTab {...props} />
+      <section className="rounded-2xl border border-slate-700/40 bg-[#0e1a2e] p-4">
+        <h3 className="text-base font-semibold text-white">Before moving on</h3>
+        <div className="mt-4 space-y-3">
+          {[
+            'I can explain the concept in my own words.',
+            'I completed or attempted the practice task.',
+            'I wrote one project connection or blocker.',
+          ].map((item) => (
+            <label key={item} className="flex items-start gap-3 text-sm leading-5 text-slate-300">
+              <input type="checkbox" className="mt-1 accent-blue-500" />
+              <span>{item}</span>
+            </label>
+          ))}
+        </div>
+        <p className="mt-5 rounded-xl border border-blue-500/20 bg-blue-500/10 p-3 text-xs leading-5 text-blue-100">
+          Reflection is where the learning sticks. Keep it short, but write what changed in your understanding.
+        </p>
+      </section>
     </div>
   );
 }
@@ -684,8 +735,10 @@ function PracticeSidePanel({
           <label className="block">
             <span className="text-xs text-slate-500">Task Status</span>
             <select value={task.status} onChange={(event) => updateStatus(event.target.value as LearningTask['status'])} disabled={!isAuthenticated} className="mt-1 w-full rounded-xl border border-slate-700/60 bg-slate-900/80 px-3 py-2 text-sm text-white outline-none disabled:opacity-60">
-              <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
+              <option value="not-started">Not Started</option>
+              <option value="learning">Learning</option>
+              <option value="practiced">Practiced</option>
+              <option value="revised">Revised</option>
               <option value="completed">Completed</option>
             </select>
           </label>
@@ -693,9 +746,9 @@ function PracticeSidePanel({
           <label className="block">
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-500">Confidence</span>
-              <span className="font-semibold text-white">{logDraft.confidenceScore} / 10</span>
+              <span className="font-semibold text-white">{logDraft.confidenceScore} / 5</span>
             </div>
-            <input type="range" min="0" max="10" value={logDraft.confidenceScore} onChange={(event) => setLogDraft({ ...logDraft, confidenceScore: event.target.value })} className="mt-2 w-full" />
+            <input type="range" min="1" max="5" value={logDraft.confidenceScore} onChange={(event) => setLogDraft({ ...logDraft, confidenceScore: event.target.value })} className="mt-2 w-full" />
           </label>
         </div>
       </section>
@@ -796,7 +849,10 @@ function cleanText(value?: string) {
 }
 
 function formatStatus(status: LearningTask['status']) {
-  if (status === 'in-progress') return 'In Progress';
+  if (status === 'pending' || status === 'not-started') return 'Not Started';
+  if (status === 'in-progress' || status === 'learning') return 'Learning';
+  if (status === 'practiced') return 'Practiced';
+  if (status === 'revised') return 'Revised';
   if (status === 'completed') return 'Completed';
-  return 'Pending';
+  return 'Not Started';
 }

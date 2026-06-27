@@ -57,12 +57,22 @@ export default function Learning() {
             Learning & Productivity
           </h1>
           <p className={`text-lg mt-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Track my learning journey, roadmaps, and productivity metrics</p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {['JavaScript', 'Node.js', 'PostgreSQL', 'MongoDB', 'Redis', 'Socket.IO', 'Docker', 'System Design', 'Interview Prep'].map((topic) => (
+              <span
+                key={topic}
+                className={`rounded-full border px-3 py-1 text-xs ${theme === 'dark' ? 'border-blue-500/25 bg-blue-500/10 text-blue-200' : 'border-blue-200 bg-blue-50 text-blue-700'}`}
+              >
+                {topic}
+              </span>
+            ))}
+          </div>
         </motion.div>
 
         {isAdmin && (
           <div className="mb-7">
             <button
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate('/admin/dashboard')}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold border border-blue-400/20"
             >
               + Create New Learning Plan
